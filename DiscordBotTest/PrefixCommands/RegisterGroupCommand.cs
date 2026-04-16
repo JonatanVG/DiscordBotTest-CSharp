@@ -1,0 +1,29 @@
+﻿using DiscordBotTest.Services;
+using DSharpPlus.Entities;
+
+namespace DiscordBotTest.PrefixCommands
+{
+  public class RegisterGroupCommand : IPrefixCommand
+  {
+    public string Name => "RegisterGroup";
+    public string[] Aliases => ["RGR", "RegisterGr", "RGroup", "GroupR", "GRegister"];
+
+    public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
+    {
+      if (!s.IsOwner(m.Author.Id)) return;
+      var guild     = m.Channel.Guild;
+      if (guild == null) return;
+      var groupName = guild.Name;
+      var groupId   = guild.Id.ToString();
+      var ownerId   = guild.OwnerId.ToString();
+      var ownerName = guild.Owner.Username;
+      var response = await s.PostGroupAsync(groupName, groupId, ownerId, ownerName);
+      var embed = new DiscordEmbedBuilder()
+        .WithTitle("Group Registration")
+        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecord ID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
+        .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+        .Build();
+      await m.RespondAsync(embed);
+    }
+  }
+}
