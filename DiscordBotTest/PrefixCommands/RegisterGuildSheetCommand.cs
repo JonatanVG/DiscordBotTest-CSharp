@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 
 namespace DiscordBotTest.PrefixCommands
 {
-  public class RegisterSheetCommand : IPrefixCommand
+  public class RegisterGuildSheetCommand : IPrefixCommand
   {
     public string Name => "AddSheet";
     public string[] Aliases => ["RegisterSheet", "RS", "AS", "AddS", "RegisterS"];
@@ -14,7 +14,7 @@ namespace DiscordBotTest.PrefixCommands
       var response = await s.PostSheetAsync(int.Parse(args[0]), args[1], args[2], args[3], int.Parse(args[4]));
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Sheet Registration")
-        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecord ID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
+        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
         .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.DarkRed)
         .Build();
       await m.RespondAsync(embed);

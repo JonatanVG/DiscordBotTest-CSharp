@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 
 namespace DiscordBotTest.PrefixCommands
 {
-  public class RegisterRoleCommand : IPrefixCommand
+  public class RegisterGuildRoleCommand : IPrefixCommand
   {
     public string Name => "RegisterRole";
     public string[] Aliases => ["RR", "RegisterR", "RRole", "RoleRegister", "RoleR"];
@@ -23,7 +23,7 @@ namespace DiscordBotTest.PrefixCommands
       var response = await s.PostRoleAsync(role.Name, role.Id.ToString(), guild.Id.ToString());
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Role Registration")
-        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecord ID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
+        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
         .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
         .Build();
       await m.RespondAsync(embed);

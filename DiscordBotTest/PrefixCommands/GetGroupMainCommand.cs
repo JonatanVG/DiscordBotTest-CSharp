@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace DiscordBotTest.PrefixCommands
 {
-  public class GuildMainCommand : IPrefixCommand
+  public class GetGroupMainCommand : IPrefixCommand
   {
     public string Name => "GuildMain";
     public string[] Aliases => ["Main", "GuildM", "GM"];
@@ -19,7 +19,7 @@ namespace DiscordBotTest.PrefixCommands
       }
       var embed = new DiscordEmbedBuilder()
         .WithTitle(guild.GuildName)
-        .WithDescription($"ID: {guild.GuildId}\nSHEET_ID: {guild.GoogleSheetId}\nIGNORE: {string.Join(", ", guild.IgnoreRoles)}\nMAIN_GROUP: {guild.MainGroup}")
+        .WithDescription($"GuildID: {guild.GuildId}\nSheetID: {guild.GoogleSheetId}\nLeadership: {string.Join(", ", guild.IgnoreRoles)}\nMainGroup: {guild.MainGroup}")
         .WithColor(DiscordColor.SpringGreen)
         .Build();
       await m.RespondAsync(embed);

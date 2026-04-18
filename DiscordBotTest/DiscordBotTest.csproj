@@ -11,6 +11,7 @@
     <PackageReference Include="DSharpPlus.SlashCommands" Version="4.5.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.6" />
     <PackageReference Include="Npgsql" Version="10.0.2" />
+    <PackageReference Include="ScottPlot" Version="5.1.58" />
     <PackageReference Include="System.Net.Security" Version="4.3.2" />
   </ItemGroup>
 

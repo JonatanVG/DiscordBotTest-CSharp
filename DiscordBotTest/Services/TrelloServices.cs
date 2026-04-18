@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System.Text.Json;
 
 namespace DiscordBotTest.Services
 {
@@ -47,5 +48,29 @@ namespace DiscordBotTest.Services
 
       return blacklistedNames;
     }
+  }
+
+  public class TrelloBlacklistCache(TrelloService t, IMemoryCache cache) : BackgroundService
+  {
+    private const string CacheKey = "TrelloBlacklist";
+    private static readonly TimeSpan RefreshInterval = TimeSpan.FromHours(6);
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+      while (!stoppingToken.IsCancellationRequested)
+      {
+        await RefreshCache();
+        await Task.Delay(RefreshInterval, stoppingToken);
+      }
+    }
+
+    private async Task RefreshCache()
+    {
+      var blacklist = await t.GetTrelloBlacklist();
+      cache.Set(CacheKey, blacklist, RefreshInterval + TimeSpan.FromMinutes(30));
+    }
+
+    public Dictionary<string, (string Name, string Status)>? GetBlacklist()
+      => cache.TryGetValue(CacheKey, out Dictionary<string, (string Name, string Status)>? data) ? data : null;
   }
 }

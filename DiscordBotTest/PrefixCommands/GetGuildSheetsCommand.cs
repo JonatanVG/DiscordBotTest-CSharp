@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 
 namespace DiscordBotTest.PrefixCommands
 {
-  public class SheetsCommand : IPrefixCommand
+  public class GetGuildSheetsCommand : IPrefixCommand
   {
     public string Name => "GuildSheets";
     public string[] Aliases => ["Sheets", "GuildS", "GS"];

@@ -20,7 +20,7 @@ namespace DiscordBotTest.PrefixCommands
       var response = await s.PostGroupAsync(groupName, groupId, ownerId, ownerName);
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Group Registration")
-        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecord ID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
+        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
         .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
         .Build();
       await m.RespondAsync(embed);

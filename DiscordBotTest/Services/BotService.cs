@@ -9,12 +9,14 @@ namespace DiscordBotTest.Services
     private readonly DiscordClient _client;
     private readonly CommandExecutor _executor;
     private readonly DbService _db;
+    private readonly RobloxAPIServices _robloxApi;
 
-    public BotService(DiscordClient client, DbService db, CommandRegistry registry)
+    public BotService(DiscordClient client, DbService db, CommandRegistry registry, RobloxAPIServices robloxApi)
     {
       _client = client;
       _db = db;
       _executor = new(registry, '!', this);
+      _robloxApi = robloxApi;
     }
 
     public DiscordClient Client => _client;
@@ -38,6 +40,14 @@ namespace DiscordBotTest.Services
     public async Task<User[]> GetUsersAsync(string groupId) => await _db.CallFunction<User[]>("get_group_users", groupId);
 
     public async Task<ApiResponse<User>> PostUserAsync(string userName, string userId, string groupId) => await _db.CallFunctionWithResponse<User>("register_user_with_group", [userName, userId, groupId]);
+
+    public async Task<ApiResponse<User>> PostAdminUserAsync(string userName, string userId) => await _db.CallFunctionWithResponse<User>("register_admin_user", [userName, userId]);
+
+    public async Task<Dictionary<long, BasicRobloxUser>> PostGetRobloxUsersAsync(string userName) => await _robloxApi.GetUserBasicAsync(userName);
+
+    public async Task<List<InventoryItem>> GetRobloxUserBadgesAsync(long userId) => await _robloxApi.GetUserBadgesAsync(userId);
+
+    public async Task<RobloxUser> GetRobloxUserInfoAsync(long userId) => await _robloxApi.GetUserInfoAsync(userId);
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
