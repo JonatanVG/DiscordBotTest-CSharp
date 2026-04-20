@@ -7,17 +7,17 @@ namespace DiscordBotTest.Services
   {
     private readonly HttpClient _http = new();
 
-    public async Task<Dictionary<string, (string Name, string Status)>> GetTrelloBlacklist()
+    public async Task<Blacklist?> GetTrelloBlacklist()
     {
       var url = "https://trello.com/b/ov7HU6Pv.json";
       var response = await _http.GetAsync(url);
 
-      if (!response.IsSuccessStatusCode) return [];
+      if (!response.IsSuccessStatusCode) return null;
 
       var json = await response.Content.ReadAsStringAsync();
       var data = JsonDocument.Parse(json).RootElement;
 
-      var blacklistedNames = new Dictionary<string, (string Name, string Status)>();
+      var blacklistedNames = new Blacklist([]);
 
       var cards = data.GetProperty("cards").EnumerateArray();
       var lists = data.GetProperty("lists").EnumerateArray();
@@ -41,7 +41,7 @@ namespace DiscordBotTest.Services
           var listName = list.GetProperty("name").GetString()!;
           var statusSuffix = isArchived ? " (Archived/Inactive Punishment" : "";
 
-          blacklistedNames[cardName.ToLower()] = (cardName, listName + statusSuffix);
+          blacklistedNames.List[cardName.ToLower()] = new BlacklistEntry(cardName, new BlacklistStatus(listName, statusSuffix));
           break;
         }
       }
@@ -70,7 +70,7 @@ namespace DiscordBotTest.Services
       cache.Set(CacheKey, blacklist, RefreshInterval + TimeSpan.FromMinutes(30));
     }
 
-    public Dictionary<string, (string Name, string Status)>? GetBlacklist()
-      => cache.TryGetValue(CacheKey, out Dictionary<string, (string Name, string Status)>? data) ? data : null;
+    public Blacklist? GetBlacklist()
+      => cache.TryGetValue(CacheKey, out Blacklist? data) ? data : null;
   }
 }

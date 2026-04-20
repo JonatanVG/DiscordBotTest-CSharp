@@ -18,8 +18,8 @@ namespace DiscordBotTest.PrefixCommands
         return;
       }
       var embed = new DiscordEmbedBuilder()
-        .WithTitle(guild.GuildName)
-        .WithDescription($"GuildID: {guild.GuildId}\nSheetID: {guild.GoogleSheetId}\nLeadership: {string.Join(", ", guild.IgnoreRoles)}\nMainGroup: {guild.MainGroup}")
+        .WithTitle(guild.Data.GuildName)
+        .WithDescription($"GuildID: {guild.Data.GuildId}\nSheetID: {guild.Data.GoogleSheetId}\nLeadership: {string.Join(", ", guild.Data.IgnoreRoles)}\nMainGroup: {guild.Data.MainGroup}")
         .WithColor(DiscordColor.SpringGreen)
         .Build();
       await m.RespondAsync(embed);

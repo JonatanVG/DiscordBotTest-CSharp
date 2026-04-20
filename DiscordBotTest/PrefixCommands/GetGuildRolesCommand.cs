@@ -11,16 +11,24 @@ namespace DiscordBotTest.PrefixCommands
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
       var guild = m.Channel.Guild;
-      if (guild == null) return;
+      if (guild is null) return;
+      var embed = new DiscordEmbedBuilder();
       var roles = await s.GetRolesAsync(guild.Id.ToString());
-      string[] lRoles = [.. roles
+      if (roles is null)
+      {
+        await m.RespondAsync(embed
+          .WithTitle($"Failed to fetch authorized roles for ({guild.Id})")
+          .WithColor(DiscordColor.Red)
+          .Build());
+        return;
+      }
+      string[] lRoles = [.. roles.Data
         .Select(x => $"**Name: {x.Name}**\nRoleId: {x.RoleId}\nGroup: {x.GroupId}\nCreated at: {x.CreatedAt}\n")];
-      var embed = new DiscordEmbedBuilder()
+      await m.RespondAsync(embed
         .WithTitle($"Authorized Roles ({guild.Id})")
         .WithDescription(string.Join("\n", lRoles))
         .WithColor(DiscordColor.Blurple)
-        .Build();
-      await m.RespondAsync(embed);
+        .Build());
     }
   }
 }

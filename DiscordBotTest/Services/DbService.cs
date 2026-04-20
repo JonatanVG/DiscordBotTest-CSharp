@@ -15,30 +15,6 @@ namespace DiscordBotTest.Services
       _dataSource = NpgsqlDataSource.Create(_connectionString);
     }
 
-    public async Task<T?> CallFunction<T>(string func, params object?[] args) where T : class
-    {
-      await using var conn = await _dataSource.OpenConnectionAsync();
-
-      var argsP = string.Join(", ", args.Select((_, i) => $"${i + 1}"));
-      var sql = $"SELECT * FROM {func}({argsP})";
-
-      await using var cmd = new NpgsqlCommand(sql, conn);
-      foreach (var arg in args)
-        cmd.Parameters.AddWithValue(arg!);
-
-      await using var reader = await cmd.ExecuteReaderAsync();
-
-      while (await reader.ReadAsync())
-      {
-        // Column order: 0=success, 1=message, 2=data (jsonb)
-        var dat = reader.GetValue(2).ToString();
-        if (!string.IsNullOrEmpty(dat))
-          return JsonSerializer.Deserialize<T>(dat);
-      }
-      
-      return null;
-    }
-
     public async Task<ApiResponse<T>?> CallFunctionWithResponse<T>(string func, params object?[] args) where T : class
     {
       await using var conn = await _dataSource.OpenConnectionAsync();

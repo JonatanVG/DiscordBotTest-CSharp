@@ -3,10 +3,10 @@ using DSharpPlus.Entities;
 
 namespace DiscordBotTest.PrefixCommands
 {
-  public class RegisterGuildSheetCommand : IPrefixCommand
+  public class GuildSheetCommand : IPrefixCommand
   {
-    public string Name => "AddSheet";
-    public string[] Aliases => ["RegisterSheet", "RS", "AS", "AddS", "RegisterS"];
+    public string Name => "Sheet";
+    public string[] Aliases => ["GuildSheet", "GS", "S"];
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

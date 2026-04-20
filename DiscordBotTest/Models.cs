@@ -1,5 +1,6 @@
 ﻿using DiscordBotTest.Services;
 using DSharpPlus.Entities;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
 #nullable disable
@@ -16,8 +17,46 @@ namespace DiscordBotTest
   {
     public bool Success { get; set; }
     public string Message { get; set; }
-    public T Data { get; set; }
+    #nullable enable
+    public T? Data { get; set; }
+    #nullable disable
   }
+
+  public sealed record Blacklist(
+    Dictionary<string, BlacklistEntry> List
+  );
+
+  public sealed record BlacklistEntry(
+    string Name,
+    BlacklistStatus Status
+  );
+
+  public sealed record BlacklistStatus(
+    string Status,
+    string Suffix
+  );
+
+  public sealed record BGCResult()
+  {
+    public List<DiscordEmbed> Embeds { get; init; } = [];
+    public List<(string Name, Stream Stream)> Files { get; init; } = [];
+  };
+
+  public sealed record UserFriend(
+    [property: JsonPropertyName("isOnline")] bool IsOnline = false,
+    [property: JsonPropertyName("presenceType")] int PresenceType = 0,
+    [property: JsonPropertyName("isDeleted")] bool IsDeleted = false,
+    [property: JsonPropertyName("friendFrequentScore")] int FrequentScore = 0,
+    [property: JsonPropertyName("friendFrequentRank")] int FrequentRank = 0,
+    [property: JsonPropertyName("hasVerifiedBadge")] bool IsVerified = false,
+    [property: JsonPropertyName("description")] string Desc = null,
+    [property: JsonPropertyName("created")] DateTimeOffset? CreatedAt = null,
+    [property: JsonPropertyName("isBanned")] bool Banned = false,
+    [property: JsonPropertyName("externalAppDisplayName")] string AppDisplayName = null,
+    [property: JsonPropertyName("id")] long Id = 0,
+    [property: JsonPropertyName("name")] string Name = null,
+    [property: JsonPropertyName("displayName")] string DisplayName = null
+  );
 
   public sealed record InventoryResponse(
     [property: JsonPropertyName("inventoryItems")] InventoryItem[] Data,
@@ -107,7 +146,7 @@ namespace DiscordBotTest
     [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt
   );
 
-  public sealed record Role(
+  public sealed record RoleRecord(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("ROLE_NAME")] string Name,
     [property: JsonPropertyName("ROLE_ID")] string RoleId,
@@ -115,13 +154,60 @@ namespace DiscordBotTest
     [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt
   );
 
+  public sealed record UserGroup(
+    [property: JsonPropertyName("group")] Group Group,
+    [property: JsonPropertyName("role")] GroupRole Role,
+    [property: JsonPropertyName("isPrimaryGroup")] bool UserPrimary = false
+  );
+
   public sealed record Group(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("description")] string Desc,
+    [property: JsonPropertyName("owner")] GroupUser Owner,
+    #nullable enable
+    [property: JsonPropertyName("shout")] GroupShout? Shout,
+    #nullable disable
+    [property: JsonPropertyName("memberCount")] long MemberCount,
+    [property: JsonPropertyName("isBuildersClubOnly")] bool ClubOnly,
+    [property: JsonPropertyName("publicEntryAllowed")] bool PublicEntry,
+    [property: JsonPropertyName("isLocked")] bool IsLocked,
+    [property: JsonPropertyName("hasVerifiedBadge")] bool IsVerified,
+    [property: JsonPropertyName("hasSocialModules")] bool HasSocials
+  );
+
+  public sealed record GroupUser(
+    [property: JsonPropertyName("buildersClubMembershipType")] int? ClubType,
+    [property: JsonPropertyName("hasVerifiedBadge")] bool Verified,
+    [property: JsonPropertyName("userId")] long Id,
+    [property: JsonPropertyName("username")] string Name,
+    [property: JsonPropertyName("displayName")] string DisplayName
+  );
+
+  public sealed record GroupShout(
+    [property: JsonPropertyName("body")] string Body,
+    [property: JsonPropertyName("poster")] GroupUser Poster,
+    [property: JsonPropertyName("created")] DateTimeOffset CreatedAt,
+    [property: JsonPropertyName("updated")] DateTimeOffset? UpdatedAt = null
+  );
+
+  public sealed record GroupRecord(
     [property: JsonPropertyName("id")] int Id,
     [property: JsonPropertyName("GROUP_NAME")] string Name,
     [property: JsonPropertyName("GROUP_ID")] string GroupId,
     [property: JsonPropertyName("OWNER_ID")] string OwnerId,
     [property: JsonPropertyName("OWNER_NAME")] string OwnerName,
     [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt
+  );
+
+  public sealed record GroupRole(
+    [property: JsonPropertyName("id")] long Id,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("description")] string Desc = "",
+    [property: JsonPropertyName("rank")] int Rank = 0,
+    [property: JsonPropertyName("memberCount")] long HasRoleCount = 0,
+    [property: JsonPropertyName("isBase")] bool Base = false,
+    [property: JsonPropertyName("color")] int Color = 0
   );
 
   public sealed record Guild(

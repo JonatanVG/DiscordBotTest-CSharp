@@ -65,7 +65,6 @@ namespace DiscordBotTest.Services
           if (inventoryResponse?.Data != null)
             foreach (var item in inventoryResponse.Data)
             {
-              Console.WriteLine($"Inventory Item: {item}");
               badges.Add(item);
             }
 
@@ -97,6 +96,39 @@ namespace DiscordBotTest.Services
       {
         Console.WriteLine($"GetRobloxUserInfoAsync: Failed: {e.Message}");
         return null;
+      }
+    }
+
+    public async Task<UserGroup[]?> GetUserGroupsAsync(long userId)
+    {
+      var url = $"https://groups.roblox.com/v1/users/{userId}/groups/roles?includeLocked=true";
+      try
+      {
+        var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        return JsonSerializer.Deserialize<UserGroup[]>(json);
+      }
+      catch (HttpRequestException e)
+      {
+        Console.WriteLine($"GetUserGroupsAsync: Failed: {e.Message}");
+        return null;
+      }
+    }
+
+    public async Task<UserFriend[]?> GetUserFriendsAsync(long userId)
+    {
+      var url = $"https://friends.roblox.com/v1/users/{userId}/friends";
+      try
+      {
+        var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        return JsonSerializer.Deserialize<UserFriend[]>
       }
     }
   }
