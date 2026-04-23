@@ -14,7 +14,7 @@ namespace DiscordBotTest.PrefixCommands
       var guild = m.Channel.Guild;
       if (guild == null) return;
       var mainGroup = guild.Id.ToString()!;
-      string?[] ignores = args[3].Split(',');
+      string[] ignores = args[3].Split(',') ?? [];
       var response = await s.PostGuildAsync(args[0], int.Parse(args[1]), args[2], ignores, mainGroup);
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Guild Registration")

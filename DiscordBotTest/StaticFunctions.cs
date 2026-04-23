@@ -1,13 +1,24 @@
 ﻿using DiscordBotTest.Services;
 using DSharpPlus.Entities;
 using ScottPlot;
-using ScottPlot.Palettes;
-using ScottPlot.PlotStyles;
 
 namespace DiscordBotTest
 {
   public static class StaticFunctions
   {
+    public static List<List<T>> SplitIntoChunks<T>(List<T> source, int chunkSize = 100)
+    {
+      var chunks = new List<List<T>>();
+
+      for (var i = 0; i < source.Count; i += chunkSize)
+      {
+        var length = Math.Min(chunkSize, source.Count - i);
+        chunks.Add(source.GetRange(i, length));
+      }
+
+      return chunks;
+    }
+    
     static BGCResult Error(string title)
     {
       var result = new BGCResult();
@@ -15,7 +26,7 @@ namespace DiscordBotTest
       return result;
     }
 
-    public async static Task<BGCResult> BGCFunction(string username, BotService s, bool graph, bool mode)
+    public async static Task<BGCResult> BGCFunction(List<string> username, BotService s, bool graph, bool mode)
     {
       var response = new BGCResult();
       var embed = new DiscordEmbedBuilder();

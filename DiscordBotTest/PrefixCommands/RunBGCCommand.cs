@@ -25,7 +25,8 @@ namespace DiscordBotTest.PrefixCommands
       bool type = graph != null && graph.Length > 0;
       var color = args.ElementAtOrDefault(2);
       bool mode = color != null && color.FirstOrDefault() == 'L';
-      var result = await BGCFunction(username, s, type, mode);
+      List<string> usernames = [username];
+      var result = await BGCFunction(usernames, s, type, mode);
 
       var message = new DiscordMessageBuilder()
         .AddEmbeds(result.Embeds);

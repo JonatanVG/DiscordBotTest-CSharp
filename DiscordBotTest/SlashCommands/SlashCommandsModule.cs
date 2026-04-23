@@ -26,7 +26,8 @@ namespace DiscordBotTest.SlashCommands
     {
       await ctx.DeferAsync();
 
-      var response = await BGCFunction(username, _bot, graph == 1, light == 1);
+      List<string> usernames = [username];
+      var response = await BGCFunction(usernames, _bot, graph == 1, light == 1);
 
       await ctx.EditResponseAsync(new DiscordWebhookBuilder()
         .AddEmbeds(response.Embeds)

@@ -29,7 +29,10 @@ namespace DiscordBotTest
   public sealed record BlacklistEntry(
     string Name,
     BlacklistStatus Status
-  );
+  )
+  {
+    public long Id { get; set; }
+  };
 
   public sealed record BlacklistStatus(
     string Status,
@@ -118,11 +121,9 @@ namespace DiscordBotTest
     [property: JsonPropertyName("displayName")] string DisplayName,
     [property: JsonPropertyName("about")] string About,
     [property: JsonPropertyName("locale")] string Locale,
-    #nullable enable
-    [property: JsonPropertyName("premium")] bool? IsPremium = false,
-    [property: JsonPropertyName("idVerified")] bool? IsIdVerified = false,
-    [property: JsonPropertyName("socialNetworkProfiles")] SocialNetworkProfiles? SocialNetworkProfiles = null
-    #nullable disable
+    [property: JsonPropertyName("premium")] bool IsPremium = false,
+    [property: JsonPropertyName("idVerified")] bool IsIdVerified = false,
+    [property: JsonPropertyName("socialNetworkProfiles")] SocialNetworkProfiles SocialNetworkProfiles = null
   );
 
   #nullable enable

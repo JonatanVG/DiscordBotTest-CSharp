@@ -1,47 +1,77 @@
 ﻿using System.Text.Json;
+using static DiscordBotTest.StaticFunctions;
 
 namespace DiscordBotTest.Services
 {
   public class RobloxAPIServices
   {
     private readonly HttpClient _http = new();
+    private readonly HttpClient _legacyHttp = new();
 
     public RobloxAPIServices()
     {
       _http.DefaultRequestHeaders.Add("x-api-key", Environment.GetEnvironmentVariable("RBLX_API"));
     }
 
-    public async Task<Dictionary<long, BasicRobloxUser>?> GetUserBasicAsync(string userName)
+    private static bool IsValidRobloxUsername(string name)
     {
-      if (userName.Length == 0) return null;
+      if (string.IsNullOrWhiteSpace(name)) return false;
+      if (name.Length < 3 || name.Length > 20) return false;
+      return name.All(c => char.IsLetterOrDigit(c) || c == '_');
+    }
+
+    public async Task<Dictionary<string, BasicRobloxUser>?> GetUserBasicAsync(List<string> userNames)
+    {
+      if (userNames.Count == 0) return null;
+      int attempts = 0;
       var url = "https://users.roblox.com/v1/usernames/users";
-      List<string> userNames = [];
-      userNames.Add(userName);
-      Dictionary<string, object> payload = [];
-      payload.Add("usernames", userNames);
-      payload.Add("excludeBannedUsers", false);
-      var response = await _http.PostAsJsonAsync(url, payload);
-
-      if (!response.IsSuccessStatusCode)
+      var result = new Dictionary<string, BasicRobloxUser>();
+      var validNames = userNames.Where(IsValidRobloxUsername).ToList();
+      var chunks = SplitIntoChunks(validNames, 200);
+      Console.Write($"Chunks: {chunks.Count}\n");
+      try
       {
-        Console.WriteLine("GetUserBasicAsync: Response: Failed to fetch users.");
-        return null;
+        foreach (var chunk in chunks)
+        {
+          var payload = new
+          {
+            usernames = chunk,
+            excludeBannedUsers = false
+          };
+          var response = await _legacyHttp.PostAsJsonAsync(url, payload);
+          if (!response.IsSuccessStatusCode)
+          {
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"GetUserBasicAsync: Response: Failed to fetch users: {response.StatusCode}\nException: {error}");
+            return null;
+          }
+
+          var json = await response.Content.ReadAsStringAsync();
+          var data = JsonDocument.Parse(json).RootElement;
+
+          var users = data.GetProperty("data").EnumerateArray();
+
+          foreach (var user in users)
+          {
+            var deserializedUser = JsonSerializer.Deserialize<BasicRobloxUser>(user);
+            if (deserializedUser != null && !result.ContainsKey(deserializedUser.Name))
+              result.Add(deserializedUser.Name, deserializedUser);
+          }
+          attempts += 1;
+          Console.WriteLine($"Success ({attempts})");
+          await Task.Delay(70000);
+        }
+        for (var i = 0; i < result.Values.Count; i++)
+          Console.WriteLine($"({i}) - {result.Values.ElementAt(i)}");
+
+        List<BasicRobloxUser> basic = [.. result.Values];
+        return result;
       }
-
-      var json = await response.Content.ReadAsStringAsync();
-      var data = JsonDocument.Parse(json).RootElement;
-
-      var result = new Dictionary<long, BasicRobloxUser>();
-
-      var users = data.GetProperty("data").EnumerateArray();
-
-      foreach (var user in users)
+      catch (Exception ex)
       {
-        var deserializedUser = JsonSerializer.Deserialize<BasicRobloxUser>(user);
-        result.Add(deserializedUser!.Id, deserializedUser);
+        Console.WriteLine($"Caught exception as ex: {ex.Message}");
+        return result;
       }
-
-      return result;
     }
 
     public async Task<List<InventoryItem>?> GetUserBadgesAsync(long userId)
@@ -104,7 +134,7 @@ namespace DiscordBotTest.Services
       var url = $"https://groups.roblox.com/v1/users/{userId}/groups/roles?includeLocked=true";
       try
       {
-        var response = await _http.GetAsync(url);
+        var response = await _legacyHttp.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
@@ -128,7 +158,12 @@ namespace DiscordBotTest.Services
 
         var json = await response.Content.ReadAsStringAsync();
 
-        return JsonSerializer.Deserialize<UserFriend[]>
+        return JsonSerializer.Deserialize<UserFriend[]>(json);
+      }
+      catch (HttpRequestException e)
+      {
+        Console.WriteLine($"GetUserFriendsAsync: Failed: {e.Message}");
+        return null;
       }
     }
   }

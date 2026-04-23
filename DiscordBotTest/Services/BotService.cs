@@ -132,20 +132,15 @@ namespace DiscordBotTest.Services
     /// <returns>A ApiResponse object containing a User object containing the deleted records data.</returns>
     public async Task<ApiResponse<User>?> RemoveAdminUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_admin_user", [userId]);
 
-    public async Task<ApiResponse<User>?> RemoveGroupUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("deauthorize_user_from_group", [userId]);
+
+    public async Task<ApiResponse<User>?> RemoveGroupUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_group_user", [userId]);
 
 
-    public async Task<ApiResponse<RoleRecord>?> RemoveGroupRoleAsync(string roleId) => await _db.CallFunctionWithResponse<RoleRecord>("deauthorize_role_from_group", [roleId]);
+    public async Task<ApiResponse<RoleRecord>?> RemoveGroupRoleAsync(string roleId) => await _db.CallFunctionWithResponse<RoleRecord>("remove_group_role", [roleId]);
 
 
-    public async Task<ApiResponse<Sheet>?> RemoveGroupSheetAsync(string sheetName) => await _db.CallFunctionWithResponse<Sheet>("remove_sheet_from_group", [sheetName]);
+    public async Task<ApiResponse<Sheet>?> RemoveGroupSheetAsync(string sheetName) => await _db.CallFunctionWithResponse<Sheet>("remove_group_sheet", [sheetName]);
 
-
-    public async Task<ApiResponse<GroupRecord>?> RemoveGroupAsync(string groupId) => await _db.CallFunctionWithResponse<GroupRecord>("remove_group_registration", [groupId]);
-
-
-    public async Task<ApiResponse<Guild>?> RemoveGuildAsync(string guildId) => await _db.CallFunctionWithResponse<Guild>("remove_guild_registration", [guildId]);
-    
 
     //// Roblox API calls
     /// <summary>
@@ -153,7 +148,7 @@ namespace DiscordBotTest.Services
     /// </summary>
     /// <param name="userName">The username to search for.</param>
     /// <returns>A dictionary mapping user IDs to basic Roblox user information, or null if no users are found.</returns>
-    public async Task<Dictionary<long, BasicRobloxUser>?> PostGetRobloxUsersAsync(string userName) => await _robloxApi.GetUserBasicAsync(userName);
+    public async Task<Dictionary<string, BasicRobloxUser>?> PostGetRobloxUsersAsync(List<string> userName) => await _robloxApi.GetUserBasicAsync(userName);
 
     /// <summary>
     /// Retrieves badges for a Roblox user matching the specified userId.
@@ -175,6 +170,13 @@ namespace DiscordBotTest.Services
     /// <param name="userId">The userId to search with.</param>
     /// <returns>A UserGroup list containing the Groups the Roblox user is a member of.</returns>
     public async Task<UserGroup[]?> GetRobloxUserGroupsAsync(long userId) => await _robloxApi.GetUserGroupsAsync(userId);
+
+    /// <summary>
+    /// Retrieves a list of friends a Roblox user matching the specified userId has.
+    /// </summary>
+    /// <param name="userId">The userId to search for.</param>
+    /// <returns>A UserFriend list containing the friends the Roblox user has.</returns>
+    public async Task<UserFriend[]?> GetRobloxUserFriendsAsync(long userId) => await _robloxApi.GetUserFriendsAsync(userId);
 
 
     //// Trello API calls
