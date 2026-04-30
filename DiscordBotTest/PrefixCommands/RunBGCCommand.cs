@@ -31,11 +31,11 @@ namespace DiscordBotTest.PrefixCommands
       var result = await BGCFunction(usernames, s, type, mode);
 
       var message = new DiscordMessageBuilder()
-        .AddEmbeds(result.Embeds);
+        .AddEmbeds(result.Embeds)
+        .AddFile(result.Files.First().Name, result.Files.First().Stream);
 
       foreach (var file in result.Files)
       {
-        message.AddFile(file.Name, file.Stream);
         file.Stream.Dispose();
       }
 

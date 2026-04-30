@@ -60,7 +60,7 @@ namespace DiscordBotTest
       //Console.WriteLine($"Fetched Trello blacklist with {blacklist.List.Count} entries");
       var isBlacklisted = blacklist.List.ContainsKey(user.Id.ToString());
 
-      desc += $"\nJoinDate: {userInfo.CreateTime}\nLocale: {userInfo.Locale}\nHasPremium: {userInfo.IsPremium}\nIsIdVerified: {userInfo.IsIdVerified}\nIsBlacklisted: {isBlacklisted}";
+      desc += $"\nJoinDate: {userInfo.CreateTime}\nLocale: {userInfo.Locale}\nHasPremium: {userInfo.IsPremium}\nIsIdVerified: {userInfo.IsIdVerified}"; // \nIsBlacklisted: {isBlacklisted}
 
       var blacklistedFriends = blacklist.List.Values.Where(x => friendIds.Contains(x.Id)).ToList();
 
@@ -71,11 +71,11 @@ namespace DiscordBotTest
       }
 
       var awardDates = graph ? GetAwardDates(Badges) : null;
-      //if (graph) Console.WriteLine($"Extracted award dates for user {username[0]} with ID {user.Id}: {string.Join(", ", awardDates!)}");
+      if (graph) Console.WriteLine($"Extracted award dates for user {username[0]} with ID {user.Id}: {string.Join(", ", awardDates!)}");
       var imageBytes = graph ? PlotCumulativeBadges(user.Name, user.Id, awardDates!, mode) : null;
-      //if (graph) Console.WriteLine($"Generated badge graph for user {username[0]} with ID {user.Id}, image size: {imageBytes!.Length} bytes");
+      if (graph) Console.WriteLine($"Generated badge graph for user {username[0]} with ID {user.Id}, image size: {imageBytes!.Length} bytes");
       var stream = graph ? new MemoryStream(imageBytes!) : null;
-      //if (graph) Console.WriteLine($"Created memory stream for badge graph for user {username[0]} with ID {user.Id}, stream length: {stream!.Length} bytes");
+      if (graph) Console.WriteLine($"Created memory stream for badge graph for user {username[0]} with ID {user.Id}, stream length: {stream!.Length} bytes");
 
       if (graph) embed.WithImageUrl("attachment://badges.png");
 
@@ -101,7 +101,7 @@ namespace DiscordBotTest
       double[] xValues = [.. sorted.Select(d => d.UtcDateTime.ToOADate())];
       double[] yValues = [.. Enumerable.Range(1, sorted.Count).Select(i => (double)i)];
 
-      var plt = new Plot();
+      using var plt = new Plot();
       plt.Title($"Badges over time for {username} ({userId})");
       plt.XLabel("Badge Earned Date");
       plt.YLabel("Total Badges");
