@@ -5,8 +5,11 @@ WORKDIR /src
 COPY DiscordBotTest/DiscordBotTest.csproj DiscordBotTest/
 RUN dotnet restore DiscordBotTest/DiscordBotTest.csproj
 
-# Runtime stage
 COPY . ./
+RUN dotnet publish DiscordBotTest/DiscordBotTest.csproj -c Release -o /app/publish
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
 COPY --from=build /app/publish .
