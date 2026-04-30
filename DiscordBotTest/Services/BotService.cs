@@ -11,10 +11,10 @@ namespace DiscordBotTest.Services
     private readonly CommandExecutor _executor;
     private readonly DbService _db;
     private readonly RobloxAPIServices _robloxApi;
-    private readonly TrelloService _trello;
+    private readonly TrelloBlacklistCache _trello;
     private readonly IServiceProvider _serviceProvider;
 
-    public BotService(DiscordClient client, DbService db, CommandRegistry registry, RobloxAPIServices robloxApi, TrelloService trello, IServiceProvider serviceProvider)
+    public BotService(DiscordClient client, DbService db, CommandRegistry registry, RobloxAPIServices robloxApi, TrelloBlacklistCache trello, IServiceProvider serviceProvider)
     {
       _client = client;
       _db = db;
@@ -180,7 +180,7 @@ namespace DiscordBotTest.Services
 
 
     //// Trello API calls
-    public async Task<Blacklist?> GetTrelloBlacklistAsync() => await _trello.GetTrelloBlacklist();
+    public Blacklist? GetTrelloBlacklist() => _trello.GetBlacklist();
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {

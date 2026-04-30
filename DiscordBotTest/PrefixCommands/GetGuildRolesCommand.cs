@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "GetRoles";
     public string[] Aliases => ["GR", "GetR", "GRoles", "RolesGet", "RolesG", "ShowRoles", "SRoles", "RolesShow", "RolesS", "ShowR"];
+    public string Usage => "GetRoles Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nGetRoles";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

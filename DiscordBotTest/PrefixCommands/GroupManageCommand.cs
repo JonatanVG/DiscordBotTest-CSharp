@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "ManageGroup";
     public string[] Aliases => ["MG"];
+    public string Usage => "ManageGroup Usage\nFields: <Add/Remove> <Role/User/Sheet> <(User/Role ID/Mention)/SheetName>\nOptional Fields: N/A\n\nExample Usage:\nManageGroup Add Role @Role\nManageGroup Remove User 1234567890\nManageGroup Add Sheet SheetName 1234567890 SheetID Range StartRow";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
@@ -17,7 +19,7 @@ namespace DiscordBotTest.PrefixCommands
       {
         await m.RespondAsync(embed
           .WithTitle("Invalid Input")
-          .WithDescription("Usage: ManageGroup <Add/Remove> <Role/User/Sheet> <(User/Role ID/Mention)/SheetName>")
+          .WithDescription(Usage)
           .Build());
         return;
       }
@@ -68,8 +70,8 @@ namespace DiscordBotTest.PrefixCommands
           return;
         }
         await m.RespondAsync(embed
-          .WithDescription($"Action: {args[0]}({args[1]})\nSuccess: {remove.Success}\nMessage: {remove.Message}\nRecordID: {remove.Data.Id}\nRoleName: {remove.Data.Name}\nRoleID: {remove.Data.Id}\nGroupID: {remove.Data.GroupId}\nCreatedAt: {remove.Data.CreatedAt}")
-          .WithColor(remove.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+          .WithDescription($"Action: {args[0]}({args[1]})\nSuccess: {remove?.Success}\nMessage: {remove?.Message}\nRecordID: {remove?.Data?.Id}\nRoleName: {remove?.Data?.Name}\nRoleID: {remove?.Data?.Id}\nGroupID: {remove?.Data?.GroupId}\nCreatedAt: {remove?.Data?.CreatedAt}")
+          .WithColor(remove?.Success == true ? DiscordColor.SpringGreen : DiscordColor.Red)
           .Build());
         return;
       }
@@ -100,8 +102,8 @@ namespace DiscordBotTest.PrefixCommands
             return;
           }
           await m.RespondAsync(embed
-            .WithDescription($"Action: {args[0]}<{type}>({target})\nSuccess: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreatedAt: {response.Data.CreatedAt}")
-            .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+            .WithDescription($"Action: {args[0]}<{type}>({target})\nSuccess: {response?.Success}\nMessage: {response?.Message}\nRecordID: {response?.Data?.Id}\nCreatedAt: {response?.Data?.CreatedAt}")
+            .WithColor(response?.Success == true ? DiscordColor.SpringGreen : DiscordColor.Red)
             .Build());
           return;
         }
@@ -114,8 +116,8 @@ namespace DiscordBotTest.PrefixCommands
           return;
         }
         await m.RespondAsync(embed
-          .WithDescription($"Action: {args[0]}({args[1]})\nSuccess: {remove.Success}\nMessage: {remove.Message}\nRecordID: {remove.Data.Id}\nUsername: {remove.Data.Name}\nUserID: {remove.Data.Id}\nGroupID: {remove.Data.GroupId}\nCreatedAt: {remove.Data.CreatedAt}")
-          .WithColor(remove.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+          .WithDescription($"Action: {args[0]}({args[1]})\nSuccess: {remove?.Success}\nMessage: {remove?.Message}\nRecordID: {remove?.Data?.Id}\nUsername: {remove?.Data?.Name}\nUserID: {remove?.Data?.Id}\nGroupID: {remove?.Data?.GroupId}\nCreatedAt: {remove?.Data?.CreatedAt}")
+          .WithColor(remove?.Success == true ? DiscordColor.SpringGreen : DiscordColor.Red)
           .Build());
         return;
       }
@@ -150,8 +152,8 @@ namespace DiscordBotTest.PrefixCommands
             return;
           }
           await m.RespondAsync(embed
-            .WithDescription($"Action: {args[0]}<{type}>({target})\nSuccess: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreatedAt: {response.Data.CreatedAt}")
-            .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+            .WithDescription($"Action: {args[0]}<{type}>({target})\nSuccess: {response?.Success}\nMessage: {response?.Message}\nRecordID: {response?.Data?.Id}\nCreatedAt: {response?.Data?.CreatedAt}")
+            .WithColor(response?.Success == true ? DiscordColor.SpringGreen : DiscordColor.Red)
             .Build());
           return;
         }
@@ -164,8 +166,8 @@ namespace DiscordBotTest.PrefixCommands
           return;
         }
         await m.RespondAsync(embed
-          .WithDescription($"Action: {args[0]}({args[1]})\nSuccess: {remove.Success}\nMessage: {remove.Message}\nRecordID: {remove.Data.Id}\nUsername: {remove.Data.Name}\nUserID: {remove.Data.Id}\nGuildID: {remove.Data.GuildId}\nCreatedAt: {remove.Data.CreatedAt}")
-          .WithColor(remove.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+          .WithDescription($"Action: {args[0]}({args[1]})\nSuccess: {remove?.Success}\nMessage: {remove?.Message}\nRecordID: {remove?.Data?.Id}\nUsername: {remove?.Data?.Name}\nUserID: {remove?.Data?.Id}\nGuildID: {remove?.Data?.GuildId}\nCreatedAt: {remove?.Data?.CreatedAt}")
+          .WithColor(remove?.Success == true ? DiscordColor.SpringGreen : DiscordColor.Red)
           .Build());
         return;
       }

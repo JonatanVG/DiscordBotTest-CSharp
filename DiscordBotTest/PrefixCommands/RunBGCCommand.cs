@@ -8,6 +8,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "BGC";
     public string[] Aliases => ["RunBGC", "run_bgc", "DoBGC"];
+    public string Usage => "BGC Usage\nFields: <username1,username2,...>\nOptional Fields: <Graph?''> <Light/Dark?''>\n\nExample Usage:\nBGC User1,User2 Graph Light\nNotice: This command currently has no multi-user capability. BGC 1 user at a time.";
+    public string Category => "Security Checks";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
@@ -32,7 +34,10 @@ namespace DiscordBotTest.PrefixCommands
         .AddEmbeds(result.Embeds);
 
       foreach (var file in result.Files)
+      {
         message.AddFile(file.Name, file.Stream);
+        file.Stream.Dispose();
+      }
 
       await m.RespondAsync(message);
     }

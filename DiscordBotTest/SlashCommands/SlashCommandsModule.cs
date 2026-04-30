@@ -32,6 +32,8 @@ namespace DiscordBotTest.SlashCommands
       await ctx.EditResponseAsync(new DiscordWebhookBuilder()
         .AddEmbeds(response.Embeds)
         .AddFile(response.Files.First().Name, response.Files.First().Stream));
+      foreach(var file in response.Files)
+        file.Stream.Dispose();
     }
   }
 }

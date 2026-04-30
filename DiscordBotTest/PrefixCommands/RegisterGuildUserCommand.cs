@@ -7,9 +7,22 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "GuildRegisterUser";
     public string[] Aliases => ["GRU", "GRegisterUser", "GuildRUser", "GuildRegisterU", "GRUser", "GuildRU", "GRegisterU", "GuildRUser"];
+    public string Usage => "GuildRegisterUser Usage\nFields: <userId or @mention>\nOptional Fields: N/A\n\nExample Usage:\nGuildRegisterUser 1234567890\nGuildRegisterUser @User";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
+      var embed = new DiscordEmbedBuilder();
+      if (args.Length < 1)
+      {
+        embed
+          .WithTitle("Invalid Usage")
+          .WithDescription(Usage)
+          .WithColor(DiscordColor.Orange)
+          .Build();
+        await m.RespondAsync(embed);
+        return;
+      }
       if (s.IsOwner(m.Author.Id)) return;
       var guild = m.Channel.Guild;
       if (guild == null) return;
@@ -23,10 +36,10 @@ namespace DiscordBotTest.PrefixCommands
         user = await s.Client.GetUserAsync(rawId);
       if (user == null) return;
       var response = await s.PostUserAsync(user.Username, user.Id.ToString(), guild.Id.ToString());
-      var embed = new DiscordEmbedBuilder()
+      embed
         .WithTitle("User Registration")
-        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
-        .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
+        .WithDescription($"Success: {response?.Success}\nMessage: {response?.Message}\nRecordID: {response?.Data?.Id}\nCreated at: {response?.Data?.CreatedAt}")
+        .WithColor(response?.Success == true ? DiscordColor.SpringGreen : DiscordColor.Red)
         .Build();
       await m.RespondAsync(embed);
     }

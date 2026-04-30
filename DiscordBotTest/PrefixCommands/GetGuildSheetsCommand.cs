@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "GuildSheets";
     public string[] Aliases => ["Sheets", "GuildS", "GS"];
+    public string Usage => "GuildSheets Usage\nFields: <guildId>\nOptional Fields: N/A\n\nExample Usage:\nGuildSheets 1234567890";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
@@ -14,8 +16,8 @@ namespace DiscordBotTest.PrefixCommands
       if (args.Length < 1)
       {
         await m.RespondAsync(embed
-          .WithTitle("Incorrect Input")
-          .WithDescription("Usage: GuildSheets <GuildId=Number>")
+          .WithTitle("Invalid Input")
+          .WithDescription(Usage)
           .WithColor(DiscordColor.Red)
           .Build());
         return;

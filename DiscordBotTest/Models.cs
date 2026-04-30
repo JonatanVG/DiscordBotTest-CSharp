@@ -1,18 +1,20 @@
-﻿using DiscordBotTest.Services;
+﻿using DiscordBotTest.PrefixCommands;
+using DiscordBotTest.Services;
 using DSharpPlus.Entities;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json.Serialization;
 
-#nullable disable
+
 namespace DiscordBotTest
 {
   public interface IPrefixCommand
   {
     string Name { get; }
     string[] Aliases { get; }
+    string Usage { get; }
+    string Category { get; }
     Task ExecuteAsync(BotService c, DiscordMessage m, string[] args);
   }
-
+#nullable disable
   public class ApiResponse<T>
   {
     public bool Success { get; set; }
@@ -21,6 +23,10 @@ namespace DiscordBotTest
     public T? Data { get; set; }
     #nullable disable
   }
+
+  public sealed record FriendsResponse(
+    [property: JsonPropertyName("data")] UserFriend[] Friends = null
+  );
 
   public sealed record Blacklist(
     Dictionary<string, BlacklistEntry> List

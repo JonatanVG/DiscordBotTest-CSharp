@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "RegisterGuild";
     public string[] Aliases => ["RegisterG", "RG"];
+    public string Usage => "RegisterGuild Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nRegisterGuild";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
@@ -18,8 +20,8 @@ namespace DiscordBotTest.PrefixCommands
       var response = await s.PostGuildAsync(args[0], int.Parse(args[1]), args[2], ignores, mainGroup);
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Guild Registration")
-        .WithDescription($"Success: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data.Id}\nCreated at: {response.Data.CreatedAt}")
-        .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.DarkRed)
+        .WithDescription($"Success: {response?.Success}\nMessage: {response?.Message}\nRecordID: {response?.Data?.Id}\nCreated at: {response?.Data?.CreatedAt}")
+        .WithColor(response?.Success == true ? DiscordColor.SpringGreen : DiscordColor.DarkRed)
         .Build();
       await m.RespondAsync(embed);
     }

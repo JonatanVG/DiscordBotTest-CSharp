@@ -8,6 +8,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "GuildMain";
     public string[] Aliases => ["Main", "GuildM", "GM"];
+    public string Usage => "GuildMain Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nGuildMain";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

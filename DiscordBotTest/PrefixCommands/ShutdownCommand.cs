@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "Shutdown";
     public string[] Aliases => ["Stop"];
+    public string Usage => "Shutdown Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nShutdown";
+    public string Category => "Bot Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

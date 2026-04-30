@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "Admin";
     public string[] Aliases => ["A", "Administrator", "BotAdmin", "BAdmin"];
+    public string Usage => "Admin Usage\nFields: <add/remove> <userId or @mention>\nOptional Fields: N/A\n\nExample Usage:\nAdmin add 1234567890\nAdmin add @User\nAdmin remove 1234567890\nAdmin remove @User";
+    public string Category => "Bot Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

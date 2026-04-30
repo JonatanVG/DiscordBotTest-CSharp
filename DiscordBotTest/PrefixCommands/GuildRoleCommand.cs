@@ -7,6 +7,8 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "RoleManage";
     public string[] Aliases => ["RM"];
+    public string Usage => "RoleManage Usage\nFields: <Add/Remove> <RoleID/RoleMention>\nOptional Fields: N/A\n\nExample Usage:\nRoleManage Add 1234567890\nRoleManage Add @Role\nRoleManage Remove 1234567890\nRoleManage Remove @Role";
+    public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

@@ -58,18 +58,21 @@ namespace DiscordBotTest.Services
               result.Add(deserializedUser.Name, deserializedUser);
           }
           attempts += 1;
-          Console.WriteLine($"Success ({attempts})");
-          await Task.Delay(70000);
+          //Console.WriteLine($"GetUserBasicAsync: Success ({attempts})");
+          if (chunks.Count > 1)
+            await Task.Delay(70000);
         }
-        for (var i = 0; i < result.Values.Count; i++)
-          Console.WriteLine($"({i}) - {result.Values.ElementAt(i)}");
+        //for (var i = 0; i < result.Values.Count; i++)
+        //  Console.WriteLine($"GetUserBasicAsync: User: ({i}) - {result.Values.ElementAt(i)}");
+
+        Console.WriteLine($"GetUserBasicAsync: Completed: Total users fetched: {result.Count}");
 
         List<BasicRobloxUser> basic = [.. result.Values];
         return result;
       }
       catch (Exception ex)
       {
-        Console.WriteLine($"Caught exception as ex: {ex.Message}");
+        Console.WriteLine($"GetUserBasicAsync: Caught exception: {ex.Message}");
         return result;
       }
     }
@@ -157,8 +160,11 @@ namespace DiscordBotTest.Services
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
+        //Console.WriteLine($"GetUserFriendsAsync: Response JSON: {json}");
 
-        return JsonSerializer.Deserialize<UserFriend[]>(json);
+        var friendsResponse = JsonSerializer.Deserialize<FriendsResponse>(json);
+
+        return friendsResponse?.Friends;
       }
       catch (HttpRequestException e)
       {
