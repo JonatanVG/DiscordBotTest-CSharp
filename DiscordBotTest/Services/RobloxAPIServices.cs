@@ -5,12 +5,13 @@ namespace DiscordBotTest.Services
 {
   public class RobloxAPIServices
   {
-    private readonly HttpClient _http = new();
-    private readonly HttpClient _legacyHttp = new();
+    private readonly HttpClient _http;
+    private readonly HttpClient _legacyHttp;
 
-    public RobloxAPIServices()
+    public RobloxAPIServices(IHttpClientFactory factory)
     {
-      _http.DefaultRequestHeaders.Add("x-api-key", Environment.GetEnvironmentVariable("RBLX_API"));
+      _http = factory.CreateClient("roblox");
+      _legacyHttp = factory.CreateClient("robloxLegacy");
     }
 
     private static bool IsValidRobloxUsername(string name)
@@ -38,7 +39,7 @@ namespace DiscordBotTest.Services
             usernames = chunk,
             excludeBannedUsers = false
           };
-          var response = await _legacyHttp.PostAsJsonAsync(url, payload);
+          using var response = await _legacyHttp.PostAsJsonAsync(url, payload);
           if (!response.IsSuccessStatusCode)
           {
             var error = await response.Content.ReadAsStringAsync();
@@ -88,7 +89,7 @@ namespace DiscordBotTest.Services
         {
           var pagedUrl = pageToken != null ? url + $"&pageToken={pageToken}" : url;
 
-          var response = await _http.GetAsync(pagedUrl);
+          using var response = await _http.GetAsync(pagedUrl);
           response.EnsureSuccessStatusCode();
 
           var json = await response.Content.ReadAsStringAsync();
@@ -118,7 +119,7 @@ namespace DiscordBotTest.Services
       var url = $"https://apis.roblox.com/cloud/v2/users/{userId}";
       try
       {
-        var response = await _http.GetAsync(url);
+        using var response = await _http.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
@@ -137,7 +138,7 @@ namespace DiscordBotTest.Services
       var url = $"https://groups.roblox.com/v1/users/{userId}/groups/roles?includeLocked=true";
       try
       {
-        var response = await _legacyHttp.GetAsync(url);
+        using var response = await _legacyHttp.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
@@ -156,7 +157,7 @@ namespace DiscordBotTest.Services
       var url = $"https://friends.roblox.com/v1/users/{userId}/friends";
       try
       {
-        var response = await _http.GetAsync(url);
+        using var response = await _http.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();

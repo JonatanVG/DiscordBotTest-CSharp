@@ -7,12 +7,13 @@ namespace DiscordBotTest.Services
 {
   public class TrelloService
   {
-    private readonly HttpClient _http = new();
+    private readonly HttpClient _http;
     private readonly RobloxAPIServices _robloxApi;
     private readonly DbService _db;
 
-    public TrelloService(RobloxAPIServices robloxApi, DbService db)
+    public TrelloService(IHttpClientFactory factory, RobloxAPIServices robloxApi, DbService db)
     {
+      _http = factory.CreateClient("trello");
       _robloxApi = robloxApi;
       _db = db;
     }
@@ -30,7 +31,7 @@ namespace DiscordBotTest.Services
       try 
       {
         //Console.WriteLine("Fetching Trello blacklist...");
-        var response = await _http.GetAsync(url);
+        using var response = await _http.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {

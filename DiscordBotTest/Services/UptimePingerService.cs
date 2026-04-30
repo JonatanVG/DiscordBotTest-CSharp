@@ -2,14 +2,14 @@
 {
   public class UptimePingerService : BackgroundService
   {
-    private readonly HttpClient _http = new();
+    private readonly IHttpClientFactory _factory;
     private readonly DbService _db;
     private string? _url;
 
-    public UptimePingerService(DbService db)
+    public UptimePingerService(DbService db, IHttpClientFactory factory)
     {
       _db = db;
-      _url = "2";
+      _factory = factory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -20,7 +20,8 @@
 
       while (!stoppingToken.IsCancellationRequested)
       {
-        await _http.GetAsync(_url, stoppingToken);
+        using var http = _factory.CreateClient("uptime");
+        using var response = await http.GetAsync(_url, stoppingToken);
         await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
       }
     }

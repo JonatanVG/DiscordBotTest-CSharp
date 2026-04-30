@@ -11,6 +11,12 @@ namespace DiscordBotTest
     {
       var builder = WebApplication.CreateBuilder(args);
 
+      builder.Services.AddHttpClient("roblox", c =>
+        c.DefaultRequestHeaders.Add("x-api-key", Environment.GetEnvironmentVariable("RBLX_API")));
+      builder.Services.AddHttpClient("robloxLegacy");
+      builder.Services.AddHttpClient("trello");
+      builder.Services.AddHttpClient("uptime");
+
       builder.Services.AddSingleton<RobloxAPIServices>();
       builder.Services.AddSingleton(sp =>
       {
