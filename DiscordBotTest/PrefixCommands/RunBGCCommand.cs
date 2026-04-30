@@ -30,16 +30,15 @@ namespace DiscordBotTest.PrefixCommands
       List<string> usernames = [username];
       var result = await BGCFunction(usernames, s, type, mode);
 
-      var message = new DiscordMessageBuilder()
-        .AddEmbeds(result.Embeds)
-        .AddFile(result.Files.First().Name, result.Files.First().Stream);
+      var message = new DiscordMessageBuilder().AddEmbeds(result.Embeds);
 
-      foreach (var file in result.Files)
-      {
-        file.Stream.Dispose();
-      }
+      if (result.Files.Count > 0)
+        message.AddFile(result.Files.First().Name, result.Files.First().Stream);
 
       await m.RespondAsync(message);
+
+      foreach (var file in result.Files)
+        file.Stream.Dispose();
     }
   }
 }

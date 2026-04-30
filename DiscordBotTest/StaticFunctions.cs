@@ -71,11 +71,11 @@ namespace DiscordBotTest
       }
 
       var awardDates = graph ? GetAwardDates(Badges) : null;
-      if (graph) Console.WriteLine($"Extracted award dates for user {username[0]} with ID {user.Id}: {string.Join(", ", awardDates!)}");
+      //if (graph) Console.WriteLine($"Extracted award dates for user {username[0]} with ID {user.Id}: {string.Join(", ", awardDates!)}");
       var imageBytes = graph ? PlotCumulativeBadges(user.Name, user.Id, awardDates!, mode) : null;
-      if (graph) Console.WriteLine($"Generated badge graph for user {username[0]} with ID {user.Id}, image size: {imageBytes!.Length} bytes");
+      //if (graph) Console.WriteLine($"Generated badge graph for user {username[0]} with ID {user.Id}, image size: {imageBytes!.Length} bytes");
       var stream = graph ? new MemoryStream(imageBytes!) : null;
-      if (graph) Console.WriteLine($"Created memory stream for badge graph for user {username[0]} with ID {user.Id}, stream length: {stream!.Length} bytes");
+      //if (graph) Console.WriteLine($"Created memory stream for badge graph for user {username[0]} with ID {user.Id}, stream length: {stream!.Length} bytes");
 
       if (graph) embed.WithImageUrl("attachment://badges.png");
 
