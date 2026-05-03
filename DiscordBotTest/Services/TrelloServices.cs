@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace DiscordBotTest.Services
 {
@@ -78,7 +77,7 @@ namespace DiscordBotTest.Services
             break;
           }
         }
-        var userIds = await _robloxApi.GetUserBasicAsync(names);
+        var userIds = await _robloxApi.GetUserBasicByUsernamesAsync(names);
         if (userIds is not null)
           foreach (var user in userIds.Values)
             blacklistedNames.List[user.UserName].Id = user.Id;

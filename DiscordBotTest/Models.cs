@@ -24,6 +24,30 @@ namespace DiscordBotTest
     #nullable disable
   }
 
+  public sealed record DBSheetData(
+    [property: JsonPropertyName("range")] string Range,
+    [property: JsonPropertyName("majorDimension")] string MajorDimension,
+    [property: JsonPropertyName("values")] string[][] Values
+  )
+  {
+    public int StartRow { get; set; }
+    public string SheetName { get; set; }
+  };
+
+  public sealed record GroupMembersResponse(
+    [property: JsonPropertyName("groupMemberships")] GroupMember[] Members,
+    [property: JsonPropertyName("nextPageToken")] string PageToken
+  );
+
+  public sealed record GroupMember(
+    [property: JsonPropertyName("path")] string Path,
+    [property: JsonPropertyName("createTime")] DateTimeOffset CreatedAt,
+    [property: JsonPropertyName("updateTime")] DateTimeOffset UpdatedAt,
+    [property: JsonPropertyName("user")] string User,
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("roles")] string[] Roles
+  );
+
   public sealed record FriendsResponse(
     [property: JsonPropertyName("data")] UserFriend[] Friends = null
   );
@@ -111,12 +135,16 @@ namespace DiscordBotTest
     [property: JsonPropertyName("serialNumber")]  int SerialNumber
   );
 
+  public sealed record BasicUserResponse(
+    [property: JsonPropertyName("data")] BasicRobloxUser[] Data
+  );
+
   public sealed record BasicRobloxUser(
-    [property: JsonPropertyName("requestedUsername")] string UserName,
     [property: JsonPropertyName("hasVerifiedBadge")] bool IsVerified,
     [property: JsonPropertyName("id")] long Id,
     [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("displayName")] string DisplayName
+    [property: JsonPropertyName("displayName")] string DisplayName,
+    [property: JsonPropertyName("requestedUsername")] string UserName = ""
   );
 
   public sealed record RobloxUser(

@@ -13,8 +13,8 @@ namespace DiscordBotTest.PrefixCommands
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
-      var guild = await s.GetDefaultGuildAsync(m.Channel.Guild.Id);
-      if (guild == null)
+      var guild = await s.GetDefaultGroupAsync(m.Channel.Guild.Id);
+      if (guild is null || guild.Data is null)
       {
         await m.RespondAsync("This group has no default guild.");
         return;

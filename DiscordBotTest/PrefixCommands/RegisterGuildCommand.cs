@@ -7,7 +7,7 @@ namespace DiscordBotTest.PrefixCommands
   {
     public string Name => "RegisterGuild";
     public string[] Aliases => ["RegisterG", "RG"];
-    public string Usage => "RegisterGuild Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nRegisterGuild";
+    public string Usage => "RegisterGuild Usage\nFields: <GuildName> <GuildId> <SheetId>\nOptional Fields: N/A\n\nExample Usage:\nRegisterGuild";
     public string Category => "Guild Management";
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)

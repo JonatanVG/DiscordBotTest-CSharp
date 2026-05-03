@@ -21,7 +21,50 @@ namespace DiscordBotTest.Services
       return name.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 
-    public async Task<Dictionary<string, BasicRobloxUser>?> GetUserBasicAsync(List<string> userNames)
+    public async Task<List<BasicRobloxUser>?> GetUserBasicByIdsAsync(long[] IDs)
+    {
+      if (IDs.Length == 0) return null;
+      int attempts = 0;
+      var url = "https://users.roblox.com/v1/users";
+      var result = new List<BasicRobloxUser>();
+      var chunks = SplitIntoChunks(IDs.ToList(), 200);
+      Console.Write($"Chunks: {chunks.Count}\n");
+      try
+      {
+        foreach (var chunk in chunks)
+        {
+          var payload = new
+          {
+            userIds = chunk,
+            excludeBannedUsers = false
+          };
+          using var response = await _legacyHttp.PostAsJsonAsync(url, payload);
+          response.EnsureSuccessStatusCode();
+
+          var json = await response.Content.ReadAsStringAsync();
+          var data = JsonSerializer.Deserialize<BasicUserResponse>(json);
+
+          if (data?.Data is not null) 
+            result.AddRange(data.Data);
+
+          attempts++;
+          //Console.WriteLine($"GetUserBasicByIdsAsync: Success ({attempts})");
+          if (chunks.Count > 1)
+            await Task.Delay(70000);
+        }
+
+        Console.WriteLine($"GetUserBasicByIdsAsync: Completed: Total users fetched: {result.Count}");
+
+        return result;
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"GetUserBasicByIdsAsync: Caught exception: {ex.Message}");
+        return result;
+      }
+    }
+
+    public async Task<Dictionary<string, BasicRobloxUser>?> GetUserBasicByUsernamesAsync(List<string> userNames)
     {
       if (userNames.Count == 0) return null;
       int attempts = 0;
@@ -40,25 +83,16 @@ namespace DiscordBotTest.Services
             excludeBannedUsers = false
           };
           using var response = await _legacyHttp.PostAsJsonAsync(url, payload);
-          if (!response.IsSuccessStatusCode)
-          {
-            var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"GetUserBasicAsync: Response: Failed to fetch users: {response.StatusCode}\nException: {error}");
-            return null;
-          }
+          response.EnsureSuccessStatusCode();
 
           var json = await response.Content.ReadAsStringAsync();
-          var data = JsonDocument.Parse(json).RootElement;
+          var data = JsonSerializer.Deserialize<BasicUserResponse>(json);
 
-          var users = data.GetProperty("data").EnumerateArray();
+          if (data?.Data is not null)
+            foreach (var user in data.Data)
+              result[user.Name] = user;
 
-          foreach (var user in users)
-          {
-            var deserializedUser = JsonSerializer.Deserialize<BasicRobloxUser>(user);
-            if (deserializedUser != null && !result.ContainsKey(deserializedUser.Name))
-              result.Add(deserializedUser.Name, deserializedUser);
-          }
-          attempts += 1;
+          attempts++;
           //Console.WriteLine($"GetUserBasicAsync: Success ({attempts})");
           if (chunks.Count > 1)
             await Task.Delay(70000);
@@ -68,7 +102,6 @@ namespace DiscordBotTest.Services
 
         Console.WriteLine($"GetUserBasicAsync: Completed: Total users fetched: {result.Count}");
 
-        List<BasicRobloxUser> basic = [.. result.Values];
         return result;
       }
       catch (Exception ex)
@@ -97,10 +130,7 @@ namespace DiscordBotTest.Services
           var inventoryResponse = JsonSerializer.Deserialize<InventoryResponse>(json);
 
           if (inventoryResponse?.Data != null)
-            foreach (var item in inventoryResponse.Data)
-            {
-              badges.Add(item);
-            }
+            badges.AddRange(inventoryResponse.Data);
 
           pageToken = inventoryResponse?.PageToken;
 
@@ -170,6 +200,38 @@ namespace DiscordBotTest.Services
       catch (HttpRequestException e)
       {
         Console.WriteLine($"GetUserFriendsAsync: Failed: {e.Message}");
+        return null;
+      }
+    }
+
+    public async Task<List<GroupMember>?> GetGroupMembersAsync(long groupId)
+    {
+      var url = $"https://apis.roblox.com/cloud/v2/groups/{groupId}/memberships?maxPageSize=100";
+      List<GroupMember> members = [];
+      try
+      {
+        string? PageToken = null;
+        do
+        {
+          var pagedUrl = PageToken != null ? url + $"&pageToken={PageToken}" : url;
+
+          using var response = await _http.GetAsync(pagedUrl);
+          response.EnsureSuccessStatusCode();
+
+          var json = await response.Content.ReadAsStringAsync();
+
+          var membersResponse = JsonSerializer.Deserialize<GroupMembersResponse>(json);
+
+          if (membersResponse?.Members != null)
+            members.AddRange(membersResponse.Members);
+
+          PageToken = membersResponse?.PageToken;
+        } while (!string.IsNullOrEmpty(PageToken));
+        return members;
+      }
+      catch (HttpRequestException e)
+      {
+        Console.WriteLine($"GetGroupMembersAsync: Failed: {e.Message}");
         return null;
       }
     }

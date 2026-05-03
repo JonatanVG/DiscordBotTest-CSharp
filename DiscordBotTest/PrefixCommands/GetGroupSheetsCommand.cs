@@ -3,7 +3,7 @@ using DSharpPlus.Entities;
 
 namespace DiscordBotTest.PrefixCommands
 {
-  public class GetGuildSheetsCommand : IPrefixCommand
+  public class GetGroupSheetsCommand : IPrefixCommand
   {
     public string Name => "GuildSheets";
     public string[] Aliases => ["Sheets", "GuildS", "GS"];
@@ -22,8 +22,8 @@ namespace DiscordBotTest.PrefixCommands
           .Build());
         return;
       }
-      var sheets = await s.GetGuildSheetsAsync(int.Parse(args[0]));
-      if (sheets is null)
+      var sheets = await s.GetGroupSheetsAsync(int.Parse(args[0]));
+      if (sheets is null || sheets.Data is null)
       {
         await m.RespondAsync(embed
           .WithTitle($"Failed Sheets Fetch")

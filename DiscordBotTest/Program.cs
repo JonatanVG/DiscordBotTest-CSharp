@@ -16,6 +16,7 @@ namespace DiscordBotTest
       builder.Services.AddHttpClient("robloxLegacy");
       builder.Services.AddHttpClient("trello");
       builder.Services.AddHttpClient("uptime");
+      builder.Services.AddHttpClient("googleSheets");
 
       builder.Services.AddSingleton<RobloxAPIServices>();
       builder.Services.AddSingleton(sp =>
@@ -34,10 +35,11 @@ namespace DiscordBotTest
       {
         var registry = new CommandRegistry();
 
+        registry.Register(new DatabaseComparerCommand());
         registry.Register(new GetGroupMainCommand());
         registry.Register(new GetGuildByIdCommand());
         registry.Register(new GetGuildRolesCommand());
-        registry.Register(new GetGuildSheetsCommand());
+        registry.Register(new GetGroupSheetsCommand());
         registry.Register(new GetGuildUsersCommand());
         registry.Register(new GetRobloxUserBadgesCommand());
         registry.Register(new GroupManageCommand());
@@ -59,6 +61,8 @@ namespace DiscordBotTest
       builder.Services.AddSingleton<TrelloService>();
       builder.Services.AddSingleton<TrelloBlacklistCache>();
       builder.Services.AddHostedService(sp => sp.GetRequiredService<TrelloBlacklistCache>());
+
+      builder.Services.AddSingleton<GoogleSheetsService>();
 
       builder.Services.AddSingleton<BotService>();
       builder.Services.AddHostedService(sp => sp.GetRequiredService<BotService>());

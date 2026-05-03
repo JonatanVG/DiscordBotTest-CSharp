@@ -10,14 +10,16 @@ namespace DiscordBotTest.Services
     private readonly DiscordClient _client;
     private readonly CommandExecutor _executor;
     private readonly DbService _db;
+    public readonly GoogleSheetsService _google;
     private readonly RobloxAPIServices _robloxApi;
     private readonly TrelloBlacklistCache _trello;
     private readonly IServiceProvider _serviceProvider;
 
-    public BotService(DiscordClient client, DbService db, CommandRegistry registry, RobloxAPIServices robloxApi, TrelloBlacklistCache trello, IServiceProvider serviceProvider)
+    public BotService(DiscordClient client, DbService db, GoogleSheetsService google, CommandRegistry registry, RobloxAPIServices robloxApi, TrelloBlacklistCache trello, IServiceProvider serviceProvider)
     {
       _client = client;
       _db = db;
+      _google = google;
       _executor = new(registry, '!', this);
       _robloxApi = robloxApi;
       _trello = trello;
@@ -39,14 +41,14 @@ namespace DiscordBotTest.Services
     /// </summary>
     /// <param name="groupId">The groupId to search for.</param>
     /// <returns>A ApiResponse object containg a Guild object containing the guild records data.</returns>
-    public async Task<ApiResponse<Guild>?> GetDefaultGuildAsync(ulong groupId) => await _db.CallFunctionWithResponse<Guild>("get_guild_by_group", groupId.ToString());
+    public async Task<ApiResponse<Guild>?> GetDefaultGroupAsync(ulong groupId) => await _db.CallFunctionWithResponse<Guild>("get_guild_by_group", groupId.ToString());
 
     /// <summary>
     /// Retrieves a list of a guilds recorded sheets by its guildId.
     /// </summary>
-    /// <param name="guildId">The guildId to search with.</param>
+    /// <param name="groupId">The groupId to search with.</param>
     /// <returns>A ApiResponse object containing a list of Sheet objects containing the data of each recorded sheet.</returns>
-    public async Task<ApiResponse<Sheet[]>?> GetGuildSheetsAsync(int guildId) => await _db.CallFunctionWithResponse<Sheet[]>("get_guild_sheets", guildId);
+    public async Task<ApiResponse<Sheet[]>?> GetGroupSheetsAsync(int groupId) => await _db.CallFunctionWithResponse<Sheet[]>("get_guild_sheets", groupId);
 
     /// <summary>
     /// Gets a list of Role records registered with the Group relating to the specified groupId.
@@ -148,7 +150,7 @@ namespace DiscordBotTest.Services
     /// </summary>
     /// <param name="userName">The username to search for.</param>
     /// <returns>A dictionary mapping user IDs to basic Roblox user information, or null if no users are found.</returns>
-    public async Task<Dictionary<string, BasicRobloxUser>?> PostGetRobloxUsersAsync(List<string> userName) => await _robloxApi.GetUserBasicAsync(userName);
+    public async Task<Dictionary<string, BasicRobloxUser>?> PostGetRobloxUsersAsync(List<string> userName) => await _robloxApi.GetUserBasicByUsernamesAsync(userName);
 
     /// <summary>
     /// Retrieves badges for a Roblox user matching the specified userId.
@@ -177,6 +179,20 @@ namespace DiscordBotTest.Services
     /// <param name="userId">The userId to search for.</param>
     /// <returns>A UserFriend list containing the friends the Roblox user has.</returns>
     public async Task<UserFriend[]?> GetRobloxUserFriendsAsync(long userId) => await _robloxApi.GetUserFriendsAsync(userId);
+
+    /// <summary>
+    /// Retrieves a list of members in a Roblox group matching the specified groupId.
+    /// </summary>
+    /// <param name="groupId">The groupId to search with.</param>
+    /// <returns>A list containing the members of the Roblox group.</returns>
+    public async Task<List<GroupMember>?> GetRobloxGroupMembersAsync(long groupId) => await _robloxApi.GetGroupMembersAsync(groupId);
+
+    /// <summary>
+    /// Retrieves basic information for Roblox users matching the specified userIds.
+    /// </summary>
+    /// <param name="userIds">An array of userIds to search for.</param>
+    /// <returns>A list containing the basic information of the Roblox users.</returns>
+    public async Task<List<BasicRobloxUser>?> GetBasicRobloxUsersByIdsAsync(long[] userIds) => await _robloxApi.GetUserBasicByIdsAsync(userIds);
 
 
     //// Trello API calls

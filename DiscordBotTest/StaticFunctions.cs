@@ -6,6 +6,101 @@ namespace DiscordBotTest
 {
   public static class StaticFunctions
   {
+    public static long[] ParseUserPathToID(string[] paths)
+    {
+      return [.. paths.Select(p =>
+      {
+        var parts = p.Split('/');
+        return parts.Length > 0 && long.TryParse(parts.Last(), out var id) ? id : 0;
+      })];
+    }
+
+    static List<DiscordEmbed> ComparerError(string title)
+    {
+      var embeds = new List<DiscordEmbed>();
+      embeds.Add(new DiscordEmbedBuilder().WithTitle(title).WithColor(DiscordColor.Red).Build());
+      return embeds;
+    }
+
+    public static async Task<List<DiscordEmbed>?> CompareDBToGroup(long groupId, BotService s)
+    {
+      var allMembers = new List<string>();
+      var response = new List<DiscordEmbed>();
+      var GroupMembers = await s.GetRobloxGroupMembersAsync(groupId);
+      if (GroupMembers is null)
+        return ComparerError($"Could not get members for group {groupId}");
+
+      string[] MemberPaths = [.. GroupMembers.Select(m => m.User)];
+
+      long[] MemberIds = ParseUserPathToID(MemberPaths);
+      if (MemberIds.Length == 0)
+        return ComparerError($"No valid member IDs found for group {groupId}");
+
+      var Members = await s.GetBasicRobloxUsersByIdsAsync(MemberIds);
+      if (Members is null)
+        return ComparerError($"Could not get user info for members of group {groupId}");
+
+      var sheets = await s.GetGroupSheetsAsync((int)groupId);
+      if (sheets is null)
+        return ComparerError($"Could not get sheets for group {groupId}");
+      if (sheets.Data is null || sheets.Data.Length == 0)
+        return ComparerError($"No sheets found for group {groupId}");
+
+      foreach (var sheet in sheets.Data)
+      {
+        var sheetData = await s._google.GetSheetDataAsync(sheet);
+        if (sheetData is null)
+          return ComparerError($"Could not get data for sheet {sheet.Name} ({sheet.Id})");
+
+        var sheetNames = new HashSet<string>();
+        var sheetDuplicates = new List<(string Name, int Row, string Role, string SheetName)>();
+        var embed = new DiscordEmbedBuilder();
+
+        var enumerated = sheetData.Values
+          .Select((row, index) => (Row: index + sheet.Row, Name: row.ElementAtOrDefault(0), Role: row.ElementAtOrDefault(1), SheetName: sheet.Name))
+          .Where(x => !string.IsNullOrWhiteSpace(x.Name) && !string.IsNullOrWhiteSpace(x.Role));
+        
+        foreach (var (Row, Name, Role, SheetName) in enumerated)
+        {
+          if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Role))
+            continue;
+          var normalized = Name.Trim().ToLowerInvariant();
+          if (!sheetNames.Add(normalized))
+            sheetDuplicates.Add((Name, Row, Role, SheetName));
+          else
+            allMembers.Add(normalized);
+        }
+
+        var DuplicateDisplay = sheetDuplicates
+          .Take(50)
+          .Select(d => $"{d.Name} (Row: {d.Row}, Role: {d.Role}, Sheet: {d.SheetName})");
+        if (sheetDuplicates.Count > 50)
+          DuplicateDisplay = DuplicateDisplay.Append($"... and {sheetDuplicates.Count - 50} more");
+
+        var desc = $"Total Group Members: {Members.Count}\nTotal Sheet Entries: {sheetNames.Count}\n\nDuplicate DB Entries ({sheetDuplicates.Count}):\n{string.Join("\n", sheetDuplicates.Select(d => $"- {d.Name} (Row: {d.Row}, Role: {d.Role}, Sheet: {d.SheetName})"))}";
+        
+        response.Add(embed
+          .WithTitle($"Check {sheet.Name}")
+          .WithDescription(desc)
+          .WithColor(DiscordColor.Orange)
+          .Build());
+      }
+      var MissingMembers = Members
+        .Where(m => !allMembers.Contains(m.Name.Trim().ToLower()))
+        .ToList();
+      var MissingDisplay = MissingMembers
+        .Take(50)
+        .Select(m => $"{m.DisplayName} (@{m.Name}, ID: {m.Id})")
+        .ToList();
+      response.Add(new DiscordEmbedBuilder()
+        .WithTitle($"Missing Members in Sheets")
+        .WithDescription($"Total Missing: {MissingMembers.Count}\n\n{string.Join("\n", MissingDisplay)}{(MissingMembers.Count > 50 ? $"\n... and {MissingMembers.Count - 50} more" : "")}")
+        .WithColor(DiscordColor.Red)
+        .Build());
+
+      return response;
+    }
+    
     public static List<List<T>> SplitIntoChunks<T>(List<T> source, int chunkSize = 100)
     {
       var chunks = new List<List<T>>();
@@ -19,20 +114,20 @@ namespace DiscordBotTest
       return chunks;
     }
     
-    static BGCResult Error(string title)
+    static BGCResult BGCError(string title)
     {
       var result = new BGCResult();
       result.Embeds.Add(new DiscordEmbedBuilder().WithTitle(title).WithColor(DiscordColor.Red).Build());
       return result;
     }
 
-    public async static Task<BGCResult> BGCFunction(List<string> username, BotService s, bool graph, bool mode)
+    public static async Task<BGCResult> BGCFunction(List<string> username, BotService s, bool graph, bool mode)
     {
       var response = new BGCResult();
       var embed = new DiscordEmbedBuilder();
       var User = await s.PostGetRobloxUsersAsync(username);
       if (User is null)
-        return Error($"User {username} does not exist.");
+        return BGCError($"User {username} does not exist.");
       //Console.WriteLine($"Fetched user {username[0]} with ID {User.Values.First().Id}");
 
       var user = User.Values.First();
@@ -40,23 +135,23 @@ namespace DiscordBotTest
 
       var Badges = await s.GetRobloxUserBadgesAsync(user.Id);
       if (Badges is null)
-        return Error($"Could not get badges for user {username}");
+        return BGCError($"Could not get badges for user {username}");
       //Console.WriteLine($"Fetched badges for user {username[0]} with ID {user.Id}");
 
       var userInfo = await s.GetRobloxUserInfoAsync(user.Id);
       if (userInfo is null)
-        return Error($"Could not get userInfo for user {username}");
+        return BGCError($"Could not get userInfo for user {username}");
       //Console.WriteLine($"Fetched userInfo for user {username[0]} with ID {user.Id}");
 
       var userFriends = await s.GetRobloxUserFriendsAsync(user.Id);
       if (userFriends is null)
-        return Error($"Could not get friends for user {username}");
+        return BGCError($"Could not get friends for user {username}");
       //Console.WriteLine($"Fetched friends for user {username[0]} with ID {user.Id}");
       var friendIds = userFriends.Select(f => f.Id).ToList();
 
       var blacklist = s.GetTrelloBlacklist();
       if (blacklist is null)
-        return Error("Could not fetch Trello blacklist");
+        return BGCError("Could not fetch Trello blacklist");
       //Console.WriteLine($"Fetched Trello blacklist with {blacklist.List.Count} entries");
       var isBlacklisted = blacklist.List.ContainsKey(user.Id.ToString());
 

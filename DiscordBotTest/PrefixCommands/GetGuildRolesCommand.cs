@@ -16,7 +16,7 @@ namespace DiscordBotTest.PrefixCommands
       if (guild is null) return;
       var embed = new DiscordEmbedBuilder();
       var roles = await s.GetRolesAsync(guild.Id.ToString());
-      if (roles is null)
+      if (roles is null || roles.Data is null)
       {
         await m.RespondAsync(embed
           .WithTitle($"Failed to fetch authorized roles for ({guild.Id})")
