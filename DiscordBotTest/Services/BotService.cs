@@ -207,11 +207,13 @@ namespace DiscordBotTest.Services
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+      await _client.BulkOverwriteGlobalApplicationCommandsAsync([]);
+
       var slash = _client.UseSlashCommands(new SlashCommandsConfiguration
       {
         Services = _serviceProvider
       });
-      slash.RegisterCommands<SlashCommandsModule>(1346784451455356948);
+      slash.RegisterCommands<SlashCommandsModule>();
 
       _client.MessageCreated += async (s, e) => await _executor.HandleAsync(e.Message);
       
