@@ -24,6 +24,19 @@ namespace DiscordBotTest
     #nullable disable
   }
 
+  public sealed record WebsitePage(
+    [property: JsonPropertyName("id")] int Id,
+    [property: JsonPropertyName("title")] string Title
+  );
+
+  public sealed record WebsiteItem(
+    [property: JsonPropertyName("id")] int Id,
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("page")] int Page,
+    [property: JsonPropertyName("content")] string Content,
+    [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt
+  );
+
   public sealed record DBSheetData(
     [property: JsonPropertyName("range")] string Range,
     [property: JsonPropertyName("majorDimension")] string MajorDimension,
@@ -46,6 +59,18 @@ namespace DiscordBotTest
     [property: JsonPropertyName("user")] string User,
     [property: JsonPropertyName("role")] string Role,
     [property: JsonPropertyName("roles")] string[] Roles
+  );
+
+  public sealed record GroupRole(
+    [property: JsonPropertyName("path")] string Path,
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("displayName")] string DisplayName,
+    [property: JsonPropertyName("rank")] int Rank
+  );
+
+  public sealed record GroupRolesResponse(
+    [property: JsonPropertyName("groupRoles")] GroupRole[] Roles,
+    [property: JsonPropertyName("nextPageToken")] string PageToken
   );
 
   public sealed record FriendsResponse(
@@ -191,7 +216,7 @@ namespace DiscordBotTest
 
   public sealed record UserGroup(
     [property: JsonPropertyName("group")] Group Group,
-    [property: JsonPropertyName("role")] GroupRole Role,
+    [property: JsonPropertyName("role")] GroupUserRole Role,
     [property: JsonPropertyName("isPrimaryGroup")] bool UserPrimary = false
   );
 
@@ -235,7 +260,7 @@ namespace DiscordBotTest
     [property: JsonPropertyName("created_at")] DateTimeOffset CreatedAt
   );
 
-  public sealed record GroupRole(
+  public sealed record GroupUserRole(
     [property: JsonPropertyName("id")] long Id,
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("description")] string Desc = "",

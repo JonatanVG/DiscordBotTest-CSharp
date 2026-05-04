@@ -1,0 +1,19 @@
+﻿@page
+@model DiscordBotTest.Pages.Terms_of_ServiceModel
+
+@{
+  Layout = "_Layout";
+  ViewData["Title"] = Model.Items
+    .FirstOrDefault(i => i.Name == "Title")?.Content ?? "Default Title";
+}
+
+<ul>
+  @foreach (var item in Model.Items)
+  {
+        @if (item.Name == "Title") continue;
+    <li>
+      <h2>@item.Name</h2>
+      <p>@Html.Raw(item.Content.Replace("-", "<br>-"))</p>
+    </li>
+  }
+</ul>

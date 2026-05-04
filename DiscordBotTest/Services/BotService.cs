@@ -194,6 +194,13 @@ namespace DiscordBotTest.Services
     /// <returns>A list containing the basic information of the Roblox users.</returns>
     public async Task<List<BasicRobloxUser>?> GetBasicRobloxUsersByIdsAsync(long[] userIds) => await _robloxApi.GetUserBasicByIdsAsync(userIds);
 
+    /// <summary>
+    /// Retrieves a list of roles in a Roblox group matching the specified groupId.
+    /// </summary>
+    /// <param name="groupId">The groupId to search with.</param>
+    /// <returns>A list containing the roles of the Roblox group.</returns>
+    public async Task<List<GroupRole>?> GetRobloxGroupRolesAsync(long groupId) => await _robloxApi.GetGroupRolesAsync(groupId);
+
 
     //// Trello API calls
     public Blacklist? GetTrelloBlacklist() => _trello.GetBlacklist();

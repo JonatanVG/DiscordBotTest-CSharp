@@ -47,6 +47,7 @@ namespace DiscordBotTest.SlashCommands
       var builder = new DiscordWebhookBuilder();
 
       var MainGroup = await _bot.GetDefaultGroupAsync(ctx.Guild.Id);
+      var GroupIgnores = MainGroup?.Data?.IgnoreRoles ?? [];
       var GroupID = MainGroup?.Data?.GuildId;
       if (GroupID is null)
       {
@@ -57,7 +58,7 @@ namespace DiscordBotTest.SlashCommands
         await ctx.EditResponseAsync(builder.AddEmbed(response));
         return;
       }
-      var result = await CompareDBToGroup(GroupID.Value, _bot);
+      var result = await CompareDBToGroup(GroupID.Value, _bot, GroupIgnores);
 
       if (result is null)
       {
@@ -69,7 +70,7 @@ namespace DiscordBotTest.SlashCommands
         return;
       }
 
-      await ctx.EditResponseAsync(builder.WithContent($"**{result.Count}** embeds found.").AddEmbeds(result));
+      await ctx.EditResponseAsync(builder.AddEmbeds(result));
     }
   }
 }

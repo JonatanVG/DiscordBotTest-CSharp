@@ -15,12 +15,13 @@ namespace DiscordBotTest.PrefixCommands
     {
       var MainGroup = await s.GetDefaultGroupAsync(m.Channel.Guild.Id);
       var GroupID = MainGroup?.Data?.GuildId;
+      var GroupIgnores = MainGroup?.Data?.IgnoreRoles ?? [];
       if (GroupID is null)
       {
         await m.RespondAsync("No group found for this guild.");
         return;
       }
-      var result = await CompareDBToGroup(GroupID.Value, s);
+      var result = await CompareDBToGroup(GroupID.Value, s, GroupIgnores);
 
       if (result is null)
       {
@@ -28,7 +29,7 @@ namespace DiscordBotTest.PrefixCommands
         return;
       }
 
-      await m.RespondAsync(new DiscordMessageBuilder().WithContent($"**{result.Count}** embeds found.").AddEmbeds(result));
+      await m.RespondAsync(new DiscordMessageBuilder().AddEmbeds(result));
     }
   }
 }

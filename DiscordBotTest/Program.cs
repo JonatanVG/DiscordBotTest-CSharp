@@ -1,7 +1,6 @@
 using DiscordBotTest.PrefixCommands;
 using DiscordBotTest.Services;
 using DSharpPlus;
-using System.Text.RegularExpressions;
 
 namespace DiscordBotTest
 {
@@ -66,9 +65,12 @@ namespace DiscordBotTest
 
       builder.Services.AddSingleton<BotService>();
       builder.Services.AddHostedService(sp => sp.GetRequiredService<BotService>());
+      builder.Services.AddRazorPages();
       builder.Services.AddHostedService<UptimePingerService>();
 
       var app = builder.Build();
+
+      app.MapRazorPages();
 
       app.MapGet("/trello", static (TrelloBlacklistCache t) =>
       {
@@ -109,8 +111,6 @@ namespace DiscordBotTest
         }
         return result;
       });
-
-      app.MapGet("/", () => "Bot is running!");
 
       await app.RunAsync();
     }

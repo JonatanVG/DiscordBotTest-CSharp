@@ -20,6 +20,36 @@ namespace DiscordBotTest.Services
       if (name.Length < 3 || name.Length > 20) return false;
       return name.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
+    
+    public async Task<List<GroupRole>?> GetGroupRolesAsync(long groupId)
+    {
+      var url = $"https://apis.roblox.com/cloud/v2/groups/{groupId}/roles?maxPageSize=20";
+      List<GroupRole> roles = [];
+      try 
+      {
+        string? pageToken = null;
+        do
+        {
+          var pagedUrl = pageToken != null ? url + $"&pageToken={pageToken}" : url;
+
+          using var response = await _http.GetAsync(pagedUrl);
+          response.EnsureSuccessStatusCode();
+
+          var json = await response.Content.ReadAsStringAsync();
+          var data = JsonSerializer.Deserialize<GroupRolesResponse>(json);
+
+          if (data?.Roles != null)
+            roles.AddRange(data.Roles);
+          pageToken = data?.PageToken;
+        } while (!string.IsNullOrEmpty(pageToken));
+        return roles;
+      }
+      catch (HttpRequestException e)
+      {
+        Console.WriteLine($"GetGroupRolesAsync: Failed: {e.Message}");
+        return null;
+      }
+    }
 
     public async Task<List<BasicRobloxUser>?> GetUserBasicByIdsAsync(long[] IDs)
     {
@@ -28,7 +58,7 @@ namespace DiscordBotTest.Services
       var url = "https://users.roblox.com/v1/users";
       var result = new List<BasicRobloxUser>();
       var chunks = SplitIntoChunks(IDs.ToList(), 200);
-      Console.Write($"Chunks: {chunks.Count}\n");
+      //Console.Write($"Chunks: {chunks.Count}\n");
       try
       {
         foreach (var chunk in chunks)
@@ -72,7 +102,7 @@ namespace DiscordBotTest.Services
       var result = new Dictionary<string, BasicRobloxUser>();
       var validNames = userNames.Where(IsValidRobloxUsername).ToList();
       var chunks = SplitIntoChunks(validNames, 200);
-      Console.Write($"Chunks: {chunks.Count}\n");
+      //Console.Write($"Chunks: {chunks.Count}\n");
       try
       {
         foreach (var chunk in chunks)

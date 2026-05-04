@@ -1,0 +1,12 @@
+﻿@model List<DiscordBotTest.WebsitePage>
+
+<header>
+  <nav>
+    <ul>
+      @foreach (var item in Model)
+      {
+        <li><a href="@(item.Title == "Index" ? "/" : $"/{item.Title.Replace(" ", "-")}")">@item.Title</a></li>
+      }
+    </ul>
+  </nav>
+</header>

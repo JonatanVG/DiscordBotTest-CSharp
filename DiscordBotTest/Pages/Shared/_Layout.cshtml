@@ -1,0 +1,19 @@
+﻿@using DiscordBotTest;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@ViewData["Title"]</title>
+</head>
+<body>
+  @await Html.PartialAsync("_Header", ViewData["Pages"] as List<WebsitePage>)
+  <h1>@ViewData["Title"]</h1>
+  <p>&nbsp;</p>
+
+  <main>
+    @RenderBody()
+  </main>
+</body>
+</html>

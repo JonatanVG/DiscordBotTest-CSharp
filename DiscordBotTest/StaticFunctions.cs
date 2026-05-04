@@ -17,20 +17,30 @@ namespace DiscordBotTest
 
     static List<DiscordEmbed> ComparerError(string title)
     {
-      var embeds = new List<DiscordEmbed>();
-      embeds.Add(new DiscordEmbedBuilder().WithTitle(title).WithColor(DiscordColor.Red).Build());
+      var embeds = new List<DiscordEmbed>()
+      { 
+        new DiscordEmbedBuilder().WithTitle(title).WithColor(DiscordColor.Red).Build()
+      };
       return embeds;
     }
 
-    public static async Task<List<DiscordEmbed>?> CompareDBToGroup(long groupId, BotService s)
+    public static async Task<List<DiscordEmbed>?> CompareDBToGroup(long groupId, BotService s, List<string> ignores)
     {
       var allMembers = new List<string>();
       var response = new List<DiscordEmbed>();
+      var GroupMemberRole = new Dictionary<string, string>();
+
+      var GroupRoles = await s.GetRobloxGroupRolesAsync(groupId);
+      if (GroupRoles is null)
+        return ComparerError($"Could not get roles for group {groupId}");
+      var roleDict = GroupRoles.ToDictionary(r => r.Path, r => r.DisplayName);
+
       var GroupMembers = await s.GetRobloxGroupMembersAsync(groupId);
       if (GroupMembers is null)
         return ComparerError($"Could not get members for group {groupId}");
 
       string[] MemberPaths = [.. GroupMembers.Select(m => m.User)];
+      GroupMemberRole = GroupMembers.ToDictionary(m => m.User.Split('/').Last(), m => roleDict[m.Role]);
 
       long[] MemberIds = ParseUserPathToID(MemberPaths);
       if (MemberIds.Length == 0)
@@ -90,7 +100,8 @@ namespace DiscordBotTest
         .ToList();
       var MissingDisplay = MissingMembers
         .Take(50)
-        .Select(m => $"{m.DisplayName} (@{m.Name}, ID: {m.Id})")
+        .Where(m => !ignores.Contains(GroupMemberRole[$"{m.Id}"]))
+        .Select(m => $"@{m.Name} - {GroupMemberRole[$"{m.Id}"]}")
         .ToList();
       response.Add(new DiscordEmbedBuilder()
         .WithTitle($"Missing Members in Sheets")
@@ -154,7 +165,6 @@ namespace DiscordBotTest
         return BGCError("Could not fetch Trello blacklist");
       //Console.WriteLine($"Fetched Trello blacklist with {blacklist.List.Count} entries");
       var isBlacklisted = blacklist.List.ContainsKey(user.Id.ToString());
-
       desc += $"\nJoinDate: {userInfo.CreateTime}\nLocale: {userInfo.Locale}\nHasPremium: {userInfo.IsPremium}\nIsIdVerified: {userInfo.IsIdVerified}"; // \nIsBlacklisted: {isBlacklisted}
 
       var blacklistedFriends = blacklist.List.Values.Where(x => friendIds.Contains(x.Id)).ToList();
