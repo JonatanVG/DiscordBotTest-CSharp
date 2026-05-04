@@ -207,17 +207,19 @@ namespace DiscordBotTest.Services
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-      await _client.BulkOverwriteGlobalApplicationCommandsAsync([]);
-
       var slash = _client.UseSlashCommands(new SlashCommandsConfiguration
       {
         Services = _serviceProvider
       });
-      slash.RegisterCommands<SlashCommandsModule>();
 
       _client.MessageCreated += async (s, e) => await _executor.HandleAsync(e.Message);
       
       await _client.ConnectAsync();
+
+      await _client.BulkOverwriteGlobalApplicationCommandsAsync([]);
+      await _client.BulkOverwriteGuildApplicationCommandsAsync(1346784451455356948, []);
+
+      slash.RegisterCommands<SlashCommandsModule>();
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -227,6 +229,11 @@ namespace DiscordBotTest.Services
       Environment.Exit(0);
     }
 
+    /// <summary>
+    /// Whether the specified userId is the owner of the bot application, granting them full administrative privileges over the bot regardless of their status in any specific guild.
+    /// </summary>
+    /// <param name="id">The userId to check.</param>
+    /// <returns>True if the userId is the owner of the bot application, otherwise false.</returns>
     public bool IsOwner(ulong id) => id == _client.CurrentApplication.Owners.FirstOrDefault()!.Id;
   }
 }
