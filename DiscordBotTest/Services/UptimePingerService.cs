@@ -26,7 +26,7 @@
         using var response = await http.GetAsync(_url, stoppingToken);
         await _db.CallFunction("audit_botstart", [DateTimeOffset.Now.ToString(), "Bot Started/Restarted", _bot.Client.CurrentApplication.Name]);
         await _db.CallFunction2("audit_botstart", [_bot.Client.CurrentApplication.Name, "Bot Started/Restarted", DateTimeOffset.Now.ToString()]);
-        await Task.Delay(TimeSpan.FromMinutes(45), stoppingToken);
+        await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
       }
     }
   }
