@@ -241,13 +241,13 @@ namespace DiscordBotTest.Services
           foreach (var group in groups.Data)
           {
             _auth[group.GroupId] = [];
-            Console.WriteLine($"Group Registration: {group.Name}({group.GroupId})");
+            //Console.WriteLine($"Group Registration: {group.Name}({group.GroupId})");
             var roles = await GetRolesAsync(group.GroupId);
             if (roles?.Data is not null)
             {
               foreach (var role in roles.Data)
               {
-                Console.WriteLine($"   Role: {role.Name}({role.RoleId})");
+                //Console.WriteLine($"   Role: {role.Name}({role.RoleId})");
                 _auth[group.GroupId][role.Id.ToString()] = role.Name;
               }
             }
@@ -256,7 +256,7 @@ namespace DiscordBotTest.Services
             {
               foreach (var user in users.Data)
               {
-                Console.WriteLine($"   User: {user.Name}({user.UserId})");
+                //Console.WriteLine($"   User: {user.Name}({user.UserId})");
                 _auth[group.GroupId][user.UserId] = user.Name;
               }
             }
