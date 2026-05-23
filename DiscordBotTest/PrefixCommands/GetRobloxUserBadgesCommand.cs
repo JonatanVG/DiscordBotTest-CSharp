@@ -24,11 +24,13 @@ namespace DiscordBotTest.PrefixCommands
         return;
       }
       var user = args[0];
-      if (user == null) return;
+      if (user is null) return;
       var userId = long.Parse(user);
       var badges = await s.GetRobloxUserBadgesAsync(userId);
+      if (badges is null) return;
       var response = string.Join("\n", [.. badges
-        .Select(x => $"**Path: {x.Path}**\nBadgeID: {x.BadgeDetails.BadgeId}\nAwardDate: {x.AddTime}")]);
+        .Where(x => x.BadgeDetails is not null)
+        .Select(x => $"**Path: {x.Path}**\nBadgeID: {x.BadgeDetails!.BadgeId}\nAwardDate: {x.AddTime}")]);
       embed
         .WithTitle($"Badges for {userId}")
         .WithDescription(response)

@@ -21,6 +21,11 @@ namespace DiscordBotTest.PrefixCommands
           .Build());
         return;
       }
+      if (await s.IsAuthorized(m.Author, m.Channel.Guild))
+      {
+        await m.RespondAsync(s.NotAuthorizedError());
+        return;
+      }
       var username = args[0];
       if (username.Contains(',')) username = username.Split(',')[0];
       var graph = args.ElementAtOrDefault(1);

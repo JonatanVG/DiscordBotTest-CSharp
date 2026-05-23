@@ -15,6 +15,7 @@ namespace DiscordBotTest.PrefixCommands
       var guild = m.Channel.Guild;
       if (guild == null) return;
       var users = await s.GetUsersAsync(guild.Id.ToString());
+      if (users is null || users.Data is null) return;
       string[] lUsers = [.. users.Data
         .Select(x => $"**Name: {x.Name}**\nUserID: {x.UserId}\nGroupID: {x.GroupId}\nCreated at: {x.CreatedAt}")];
       var embed = new DiscordEmbedBuilder()

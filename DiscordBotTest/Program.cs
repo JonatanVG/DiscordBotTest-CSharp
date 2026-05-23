@@ -34,7 +34,9 @@ namespace DiscordBotTest
       {
         var registry = new CommandRegistry();
 
+        registry.Register(new AmIAuthorizedCommand());
         registry.Register(new DatabaseComparerCommand());
+        registry.Register(new GetBotAdminsCommand());
         registry.Register(new GetGroupMainCommand());
         registry.Register(new GetGuildByIdCommand());
         registry.Register(new GetGuildRolesCommand());

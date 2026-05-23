@@ -35,7 +35,7 @@ namespace DiscordBotTest.PrefixCommands
       else if (ulong.TryParse(args[0], out var rawId))
         user = await s.Client.GetUserAsync(rawId);
       if (user == null) return;
-      var response = await s.PostUserAsync(user.Username, user.Id.ToString(), guild.Id.ToString());
+      var response = await s.PostGuildUserAsync(user.Username, user.Id.ToString(), guild.Id.ToString());
       embed
         .WithTitle("User Registration")
         .WithDescription($"Success: {response?.Success}\nMessage: {response?.Message}\nRecordID: {response?.Data?.Id}\nCreated at: {response?.Data?.CreatedAt}")

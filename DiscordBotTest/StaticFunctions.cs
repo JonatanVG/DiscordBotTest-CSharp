@@ -28,25 +28,42 @@ namespace DiscordBotTest
     {
       var allMembers = new List<string>();
       var response = new List<DiscordEmbed>();
-      var GroupMemberRole = new Dictionary<string, string>();
 
       var GroupRoles = await s.GetRobloxGroupRolesAsync(groupId);
       if (GroupRoles is null)
         return ComparerError($"Could not get roles for group {groupId}");
-      var roleDict = GroupRoles.ToDictionary(r => r.Path, r => r.DisplayName);
+      var roleDict = GroupRoles
+        .ToDictionary(r => r.Path, r => r.DisplayName);
+      string[] roleIds  = [.. GroupRoles.Where(r => !ignores.Contains(r.DisplayName)).Select(r => r.Path)];
 
-      var GroupMembers = await s.GetRobloxGroupMembersAsync(groupId);
+      var GroupMembers = await s.GetRobloxGroupMembersAsync(groupId, roleIds);
       if (GroupMembers is null)
         return ComparerError($"Could not get members for group {groupId}");
 
-      string[] MemberPaths = [.. GroupMembers.Select(m => m.User)];
-      GroupMemberRole = GroupMembers.ToDictionary(m => m.User.Split('/').Last(), m => roleDict[m.Role]);
+      var GroupMembersList = GroupMembers.ToList();
+
+      //foreach (var member in GroupMembersList)
+      //{
+      //  if (!roleDict.ContainsKey(member.Role))
+      //    Console.WriteLine($"Member: {member.User} role {member.Role} not in roleDict.");
+      //}
+
+      //Console.WriteLine("Finished printing members.");
+
+      string[] MemberPaths = [.. GroupMembersList
+        .DistinctBy(m => m.User.Split('/').Last())
+        .Select(m => m.User)];
+      var GroupMemberRole = GroupMembersList
+        .DistinctBy(m => m.User.Split('/').Last())
+        .ToDictionary(m => m.User.Split('/').Last(), m => roleDict[m.Role]);
+      //Console.WriteLine("CompareDBToGroup: Sort Members and Roles Completed.");
 
       long[] MemberIds = ParseUserPathToID(MemberPaths);
       if (MemberIds.Length == 0)
         return ComparerError($"No valid member IDs found for group {groupId}");
 
-      var Members = await s.GetBasicRobloxUsersByIdsAsync(MemberIds);
+      List<RobloxUser?> Members = [.. await Task.WhenAll(MemberIds.Select(m => s.GetRobloxUserInfoAsync(m)))];
+      //Console.WriteLine("GetRobloxUserInfoAsync: Completed.");
       if (Members is null)
         return ComparerError($"Could not get user info for members of group {groupId}");
 
@@ -96,12 +113,13 @@ namespace DiscordBotTest
           .Build());
       }
       var MissingMembers = Members
+        .OfType<RobloxUser>()
         .Where(m => !allMembers.Contains(m.Name.Trim().ToLower()))
+        .Where(m => GroupMemberRole.ContainsKey($"{m.Id}") && !ignores.Contains(GroupMemberRole[$"{m.Id}"]))
         .ToList();
       var MissingDisplay = MissingMembers
         .Take(50)
-        .Where(m => !ignores.Contains(GroupMemberRole[$"{m.Id}"]))
-        .Select(m => $"@{m.Name} - {GroupMemberRole[$"{m.Id}"]}")
+        .Select(m => $"@{m!.Name} - {GroupMemberRole[$"{m.Id}"]}")
         .ToList();
       response.Add(new DiscordEmbedBuilder()
         .WithTitle($"Missing Members in Sheets")

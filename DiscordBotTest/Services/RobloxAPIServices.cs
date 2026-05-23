@@ -234,34 +234,65 @@ namespace DiscordBotTest.Services
       }
     }
 
-    public async Task<List<GroupMember>?> GetGroupMembersAsync(long groupId)
+    public async Task<List<GroupMember>?> GetGroupMembersAsync(long groupId, string[] roles)
     {
       var url = $"https://apis.roblox.com/cloud/v2/groups/{groupId}/memberships?maxPageSize=100";
+
       List<GroupMember> members = [];
       try
       {
         string? PageToken = null;
-        do
+        if (roles != null)
         {
-          var pagedUrl = PageToken != null ? url + $"&pageToken={PageToken}" : url;
+          foreach (var role in roles)
+          {
+            do
+            {
+              var pagedUrl = PageToken != null ? url + $"&pageToken={PageToken}" : url;
+              var roledUrl = pagedUrl + $"&filter=role=='{role}'";
 
-          using var response = await _http.GetAsync(pagedUrl);
-          response.EnsureSuccessStatusCode();
+              using var response = await _http.GetAsync(roledUrl);
+              response.EnsureSuccessStatusCode();
 
-          var json = await response.Content.ReadAsStringAsync();
+              var json = await response.Content.ReadAsStringAsync();
 
-          var membersResponse = JsonSerializer.Deserialize<GroupMembersResponse>(json);
+              var memberResponse = JsonSerializer.Deserialize<GroupMembersResponse>(json);
 
-          if (membersResponse?.Members != null)
-            members.AddRange(membersResponse.Members);
+              if (memberResponse?.Members != null)
+                members.AddRange(memberResponse.Members);
 
-          PageToken = membersResponse?.PageToken;
-        } while (!string.IsNullOrEmpty(PageToken));
-        return members;
+              PageToken = memberResponse?.PageToken;
+              await Task.Delay(100);
+            } while (!string.IsNullOrEmpty(PageToken));
+          }
+          //Console.WriteLine("GetGroupMembersAsync: Completed.");
+          return members;
+        }
+        else
+        {
+          do
+          {
+            var pagedUrl = PageToken != null ? url + $"&pageToken={PageToken}" : url;
+
+            using var response = await _http.GetAsync(pagedUrl);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var membersResponse = JsonSerializer.Deserialize<GroupMembersResponse>(json);
+
+            if (membersResponse?.Members != null)
+              members.AddRange(membersResponse.Members);
+
+            PageToken = membersResponse?.PageToken;
+          } while (!string.IsNullOrEmpty(PageToken));
+          //Console.WriteLine("GetGroupMembersAsync: Completed.");
+          return members;
+        }
       }
-      catch (HttpRequestException e)
+      catch (Exception e) // broaden temporarily
       {
-        Console.WriteLine($"GetGroupMembersAsync: Failed: {e.Message}");
+        Console.WriteLine($"GetGroupMembersAsync: Failed: {e.GetType().Name}: {e.Message}");
         return null;
       }
     }

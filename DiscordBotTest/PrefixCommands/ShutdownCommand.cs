@@ -12,7 +12,11 @@ namespace DiscordBotTest.PrefixCommands
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
-      if (!s.IsOwner(m.Author.Id)) return;
+      if (!s.IsOwner(m.Author.Id)) 
+      {
+        await m.RespondAsync(s.NotAuthorizedError());
+        return;
+      }
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Shutting down...")
         .WithColor(DiscordColor.DarkRed)

@@ -26,10 +26,20 @@ namespace DiscordBotTest.SlashCommands
     {
       await ctx.DeferAsync();
 
+      var builder = new DiscordWebhookBuilder();
+
+      if (await _bot.IsAuthorized(ctx.User, ctx.Guild))
+      {
+        await ctx.EditResponseAsync(builder.AddEmbed(
+          _bot.NotAuthorizedError()
+        ));
+        return;
+      }
+
       List<string> usernames = [username];
       var response = await BGCFunction(usernames, _bot, graph == 1, light == 1);
 
-      var builder = new DiscordWebhookBuilder().AddEmbeds(response.Embeds);
+      builder.AddEmbeds(response.Embeds);
       if (response.Files.Count > 0)
         builder.AddFile(response.Files.First().Name, response.Files.First().Stream);
 
@@ -40,14 +50,29 @@ namespace DiscordBotTest.SlashCommands
     }
 
     [SlashCommand("Compare", "Compare the current guilds google sheet(s) with the current guilds main group memberlist.")]
-    public async Task Compare(InteractionContext ctx)
+    public async Task Compare(InteractionContext ctx,
+      [Option("guildId", "The guild to check.")] string? guildId = null)
     {
       await ctx.DeferAsync();
-      
+
       var builder = new DiscordWebhookBuilder();
 
-      var MainGroup = await _bot.GetDefaultGroupAsync(ctx.Guild.Id);
+      if (await _bot.IsAuthorized(ctx.User, ctx.Guild))
+      {
+        await ctx.EditResponseAsync(builder.AddEmbed(
+          _bot.NotAuthorizedError()
+        ));
+        return;
+      }
+
+      var guild = guildId != null ? ulong.Parse(guildId) : ctx.Guild.Id;
+
+      var MainGroup = await _bot.GetDefaultGroupAsync(guild);
       var GroupIgnores = MainGroup?.Data?.IgnoreRoles ?? [];
+      //foreach (var ignore in GroupIgnores)
+      //{
+      //  Console.WriteLine($"IgnoreRole: {ignore}");
+      //}
       var GroupID = MainGroup?.Data?.GuildId;
       if (GroupID is null)
       {

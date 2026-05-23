@@ -49,7 +49,7 @@ namespace DiscordBotTest
 
   public sealed record GroupMembersResponse(
     [property: JsonPropertyName("groupMemberships")] GroupMember[] Members,
-    [property: JsonPropertyName("nextPageToken")] string PageToken
+    [property: JsonPropertyName("nextPageToken")] string PageToken = ""
   );
 
   public sealed record GroupMember(

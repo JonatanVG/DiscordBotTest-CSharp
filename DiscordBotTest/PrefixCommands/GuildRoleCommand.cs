@@ -44,7 +44,7 @@ namespace DiscordBotTest.PrefixCommands
           .Build());
         return;
       }
-      var response = await s.PostRoleAsync(role.Name, role.Id.ToString(), guild.Id.ToString());
+      var response = await s.PostGuildRoleAsync(role.Name, role.Id.ToString(), guild.Id.ToString());
       if (response is null)
       {
         await m.RespondAsync(embed

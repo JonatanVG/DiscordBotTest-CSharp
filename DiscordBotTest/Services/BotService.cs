@@ -1,6 +1,7 @@
 ﻿using DiscordBotTest.PrefixCommands;
 using DiscordBotTest.SlashCommands;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
 namespace DiscordBotTest.Services
@@ -14,6 +15,8 @@ namespace DiscordBotTest.Services
     private readonly RobloxAPIServices _robloxApi;
     private readonly TrelloBlacklistCache _trello;
     private readonly IServiceProvider _serviceProvider;
+    public Tuple<string, string>? _owner;
+    public Dictionary<string, Dictionary<string, string>> _auth = [];
 
     public BotService(DiscordClient client, DbService db, GoogleSheetsService google, CommandRegistry registry, RobloxAPIServices robloxApi, TrelloBlacklistCache trello, IServiceProvider serviceProvider)
     {
@@ -65,15 +68,15 @@ namespace DiscordBotTest.Services
     public async Task<ApiResponse<User[]>?> GetUsersAsync(string groupId) => await _db.CallFunctionWithResponse<User[]>("get_group_users", groupId);
 
     /// <summary>
-    /// Registers a new User record into the Databases GROUP_SPECIFIC_AUTHORIZED_USERS table using the data parameters.
-    /// This registers the User as a administrative user granting it access to use specific access-locked commands in the specific group.
+    /// Registers a new User record into the Databases GUILD_SPECIFIC_AUTHORIZED_USERS table using the data parameters.
+    /// This registers the User as a administrative user granting it access to use specific access-locked commands in the specific guild.
     /// To be used when you want to only grant an individual User administrative access rather everyone with a specific Role.
     /// </summary>
     /// <param name="userName">The name of the User to record.</param>
     /// <param name="userId">The id of the User to record.</param>
-    /// <param name="groupId">The id of the Group the User is to be recorded with.</param>
+    /// <param name="guildId">The id of the Guild the User is to be recorded with.</param>
     /// <returns>A ApiResponse object containing a User object containing the new records data.</returns>
-    public async Task<ApiResponse<User>?> PostUserAsync(string userName, string userId, string groupId) => await _db.CallFunctionWithResponse<User>("register_user_with_group", [userName, userId, groupId]);
+    public async Task<ApiResponse<User>?> PostGuildUserAsync(string userName, string userId, string guildId) => await _db.CallFunctionWithResponse<User>("register_user_with_group", [userName, userId, guildId]);
 
     /// <summary>
     /// Registers a new User record into the Datbases AUTHORIZED_BOT_USERS table using the data parameters.
@@ -122,9 +125,9 @@ namespace DiscordBotTest.Services
     /// </summary>
     /// <param name="roleName">The name of the Role to record.</param>
     /// <param name="roleId">The id of the Role to record.</param>
-    /// <param name="groupId">The id of the Group the Role is to be recorded with.</param>
+    /// <param name="guildId">The id of the Group the Role is to be recorded with.</param>
     /// <returns>A ApiResponse object containing a Role object containing the new records data.</returns>
-    public async Task<ApiResponse<RoleRecord>?> PostRoleAsync(string roleName, string roleId, string groupId) => await _db.CallFunctionWithResponse<RoleRecord>("register_role_with_group", [roleName, roleId, groupId]);
+    public async Task<ApiResponse<RoleRecord>?> PostGuildRoleAsync(string roleName, string roleId, string guildId) => await _db.CallFunctionWithResponse<RoleRecord>("register_role_with_group", [roleName, roleId, guildId]);
 
     /// <summary>
     /// Deletes a recorded User from the Databases AUTHORIZED_BOT_USERS table by the specific userId.
@@ -135,13 +138,22 @@ namespace DiscordBotTest.Services
     public async Task<ApiResponse<User>?> RemoveAdminUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_admin_user", [userId]);
 
 
-    public async Task<ApiResponse<User>?> RemoveGroupUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_group_user", [userId]);
+    public async Task<ApiResponse<User>?> RemoveGuildUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_group_user", [userId]);
 
 
-    public async Task<ApiResponse<RoleRecord>?> RemoveGroupRoleAsync(string roleId) => await _db.CallFunctionWithResponse<RoleRecord>("remove_group_role", [roleId]);
+    public async Task<ApiResponse<RoleRecord>?> RemoveGuildRoleAsync(string roleId) => await _db.CallFunctionWithResponse<RoleRecord>("remove_group_role", [roleId]);
 
 
     public async Task<ApiResponse<Sheet>?> RemoveGroupSheetAsync(string sheetName) => await _db.CallFunctionWithResponse<Sheet>("remove_group_sheet", [sheetName]);
+
+
+    public async Task<ApiResponse<GroupRecord[]>?> GetAllRegisteredGroups() => await _db.CallFunctionWithResponse<GroupRecord[]>("get_all_registered_groups");
+
+
+    public async Task<ApiResponse<User[]>?> GetBotAdmins() => await _db.CallFunctionWithResponse<User[]>("get_universal_admins");
+
+
+    public async Task AuditAction(string date, string reason, string category, string item) => await _db.CallFunction("audit", [date, reason, category, item]);
 
 
     //// Roblox API calls
@@ -185,7 +197,7 @@ namespace DiscordBotTest.Services
     /// </summary>
     /// <param name="groupId">The groupId to search with.</param>
     /// <returns>A list containing the members of the Roblox group.</returns>
-    public async Task<List<GroupMember>?> GetRobloxGroupMembersAsync(long groupId) => await _robloxApi.GetGroupMembersAsync(groupId);
+    public async Task<List<GroupMember>?> GetRobloxGroupMembersAsync(long groupId, string[] roleIds) => await _robloxApi.GetGroupMembersAsync(groupId, roleIds);
 
     /// <summary>
     /// Retrieves basic information for Roblox users matching the specified userIds.
@@ -211,11 +223,50 @@ namespace DiscordBotTest.Services
       {
         Services = _serviceProvider
       });
-      slash.RegisterCommands<SlashCommandsModule>();
+      slash.RegisterCommands<SlashCommandsModule>(1346784451455356948);
 
       _client.MessageCreated += async (s, e) => await _executor.HandleAsync(e.Message);
       
       await _client.ConnectAsync();
+
+      var groups = await GetAllRegisteredGroups();
+      _owner = new(_client.CurrentApplication.Owners.FirstOrDefault()!.Id.ToString(), _client.CurrentApplication.Owners.FirstOrDefault()!.Username);
+      
+      if (groups?.Data is not null)
+      {
+        _auth["0"] = [];
+        var adminUsers = await GetBotAdmins();
+        if (adminUsers?.Data is not null) 
+        {
+          foreach (var group in groups.Data)
+          {
+            _auth[group.GroupId] = [];
+            Console.WriteLine($"Group Registration: {group.Name}({group.GroupId})");
+            var roles = await GetRolesAsync(group.GroupId);
+            if (roles?.Data is not null)
+            {
+              foreach (var role in roles.Data)
+              {
+                Console.WriteLine($"   Role: {role.Name}({role.RoleId})");
+                _auth[group.GroupId][role.Id.ToString()] = role.Name;
+              }
+            }
+            var users = await GetUsersAsync(group.GroupId);
+            if (users?.Data is not null)
+            {
+              foreach (var user in users.Data)
+              {
+                Console.WriteLine($"   User: {user.Name}({user.UserId})");
+                _auth[group.GroupId][user.UserId] = user.Name;
+              }
+            }
+            foreach (var admin in adminUsers.Data) _auth[group.GroupId][admin.UserId] = admin.Name;
+            _auth[group.GroupId][_owner.Item1] = _owner.Item2;
+          }
+          foreach (var admin in adminUsers.Data) _auth["0"][admin.UserId] = admin.Name;
+        }
+        _auth["0"][_owner.Item1] = _owner.Item2;
+      }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -231,5 +282,34 @@ namespace DiscordBotTest.Services
     /// <param name="id">The userId to check.</param>
     /// <returns>True if the userId is the owner of the bot application, otherwise false.</returns>
     public bool IsOwner(ulong id) => id == _client.CurrentApplication.Owners.FirstOrDefault()!.Id;
+
+    public async Task<bool> IsAuthorized(DiscordUser user, DiscordGuild? guild) 
+    {
+      List<ulong> ids = [];
+      var guildId = "0";
+      if (guild != null)
+      {
+        var author = await guild.GetMemberAsync(user.Id);
+        ids = [.. author.Roles.Select(r => r.Id)];
+        guildId = guild.Id.ToString();
+      }
+      ids.Add(user.Id);
+      foreach (var id in ids)
+      {
+        if (_auth[guildId].ContainsKey(id.ToString())) return false;
+      }
+      return true;
+    }
+
+    public bool IsBotAdmin(ulong id) => _auth["0"].ContainsKey(id.ToString());
+
+    public DiscordEmbed NotAuthorizedError()
+    {
+      return new DiscordEmbedBuilder()
+        .WithTitle("Auth: Failed")
+        .WithDescription("Error: PermissionError: User lacks administrative permissions")
+        .WithColor(DiscordColor.DarkRed)
+        .Build();
+    }
   }
 }
