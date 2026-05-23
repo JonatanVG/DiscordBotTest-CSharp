@@ -10,12 +10,12 @@ namespace DiscordBotTest.PrefixCommands.HelperFunctions
       var result = new DiscordEmbedBuilder()
         .WithTitle("Guild Managment");
       DiscordMember? user = null;
-      if (ulong.TryParse(target, out var roleId))
-        user = await guild.GetMemberAsync(roleId);
+      if (ulong.TryParse(target, out var userId))
+        user = await guild.GetMemberAsync(userId);
       else if (target.StartsWith("<@") && target.EndsWith('>'))
       {
-        roleId = ulong.Parse(target[2..^1]);
-        user = await guild.GetMemberAsync(roleId);
+        userId = ulong.Parse(target[2..^1]);
+        user = await guild.GetMemberAsync(userId);
       }
       if (user == null)
       {
@@ -32,6 +32,7 @@ namespace DiscordBotTest.PrefixCommands.HelperFunctions
           .Build();
       }
       await s.AuditAction(DateTimeOffset.Now.ToString(), "User Action", "Remove<User>", $"{target}");
+      s._auth[guild.Id.ToString()].Remove(userId.ToString());
       return result
         .WithDescription($"Action: Remove<User>({target})\nSuccess: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data?.Id}\nCreatedAt: {response.Data?.CreatedAt}")
         .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
