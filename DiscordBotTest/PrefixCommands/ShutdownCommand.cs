@@ -23,6 +23,7 @@ namespace DiscordBotTest.PrefixCommands
         .Build();
       await m.RespondAsync(embed);
       await Task.Delay(500);
+      Logging.DebugLog("Shutting down...");
       await s.StopAsync(CancellationToken.None);
     }
   }

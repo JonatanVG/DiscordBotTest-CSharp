@@ -4,6 +4,21 @@ using DSharpPlus;
 
 namespace DiscordBotTest
 {
+  public static class Logging
+  {
+    private static ILogger? _logger;
+
+    public static void Initialize(ILogger logger)
+    {
+      _logger = logger;
+    }
+
+    public static void DebugLog(string message)
+    {
+      _logger?.LogDebug("[{Timestamp:yyyy-MM-dd HH:mm:ss}] {Message}",
+        DateTime.Now, message);
+    }
+  }
   public class Program
   {
     public static async Task Main(string[] args)
@@ -71,6 +86,7 @@ namespace DiscordBotTest
       builder.Services.AddHostedService<UptimePingerService>();
 
       var app = builder.Build();
+      Logging.Initialize(app.Logger);
 
       app.MapRazorPages();
 

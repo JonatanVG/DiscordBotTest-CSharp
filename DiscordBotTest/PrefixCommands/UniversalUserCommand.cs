@@ -20,7 +20,7 @@ namespace DiscordBotTest.PrefixCommands
       var response = new DiscordEmbedBuilder().WithTitle("Admin Registration");
       DiscordUser? user = null;
       var action = string.Equals(args[0].ToLower(), "add");
-      Console.WriteLine($"Usermention: {args[1]}");
+      Logging.DebugLog($"Usermention: {args[1]}");
       if (args[1].StartsWith("<@") && args[1].EndsWith('>'))
       {
         var userId = ulong.Parse(args[1][2..^1].TrimStart('!'));

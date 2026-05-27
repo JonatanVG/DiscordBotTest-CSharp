@@ -24,12 +24,12 @@ namespace DiscordBotTest.Services
       var cachedBlacklist = await _db.CallFunctionWithResponse<Blacklist>("get_group_cache", []);
       if (cachedBlacklist != null && cachedBlacklist.Data != null)
       {
-        //Console.WriteLine("Using cached Trello blacklist.");
+        Logging.DebugLog("Using cached Trello blacklist.");
         return cachedBlacklist.Data;
       }
       try 
       {
-        //Console.WriteLine("Fetching Trello blacklist...");
+        Logging.DebugLog("Fetching Trello blacklist...");
         using var response = await _http.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)

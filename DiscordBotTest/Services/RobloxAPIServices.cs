@@ -58,7 +58,7 @@ namespace DiscordBotTest.Services
       var url = "https://users.roblox.com/v1/users";
       var result = new List<BasicRobloxUser>();
       var chunks = SplitIntoChunks(IDs.ToList(), 200);
-      //Console.Write($"Chunks: {chunks.Count}\n");
+      Logging.DebugLog($"Chunks: {chunks.Count}\n");
       try
       {
         foreach (var chunk in chunks)
@@ -78,12 +78,12 @@ namespace DiscordBotTest.Services
             result.AddRange(data.Data);
 
           attempts++;
-          //Console.WriteLine($"GetUserBasicByIdsAsync: Success ({attempts})");
+          Logging.DebugLog($"GetUserBasicByIdsAsync: Success ({attempts})");
           if (chunks.Count > 1)
             await Task.Delay(70000);
         }
 
-        Console.WriteLine($"GetUserBasicByIdsAsync: Completed: Total users fetched: {result.Count}");
+        Logging.DebugLog($"GetUserBasicByIdsAsync: Completed: Total users fetched: {result.Count}");
 
         return result;
       }
@@ -102,7 +102,7 @@ namespace DiscordBotTest.Services
       var result = new Dictionary<string, BasicRobloxUser>();
       var validNames = userNames.Where(IsValidRobloxUsername).ToList();
       var chunks = SplitIntoChunks(validNames, 200);
-      //Console.Write($"Chunks: {chunks.Count}\n");
+      Logging.DebugLog($"Chunks: {chunks.Count}\n");
       try
       {
         foreach (var chunk in chunks)
@@ -123,14 +123,14 @@ namespace DiscordBotTest.Services
               result[user.Name] = user;
 
           attempts++;
-          //Console.WriteLine($"GetUserBasicAsync: Success ({attempts})");
+          Logging.DebugLog($"GetUserBasicAsync: Success ({attempts})");
           if (chunks.Count > 1)
             await Task.Delay(70000);
         }
         //for (var i = 0; i < result.Values.Count; i++)
         //  Console.WriteLine($"GetUserBasicAsync: User: ({i}) - {result.Values.ElementAt(i)}");
 
-        Console.WriteLine($"GetUserBasicAsync: Completed: Total users fetched: {result.Count}");
+        Logging.DebugLog($"GetUserBasicAsync: Completed: Total users fetched: {result.Count}");
 
         return result;
       }
@@ -221,7 +221,7 @@ namespace DiscordBotTest.Services
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
-        //Console.WriteLine($"GetUserFriendsAsync: Response JSON: {json}");
+        Logging.DebugLog($"GetUserFriendsAsync: Response JSON: {json}");
 
         var friendsResponse = JsonSerializer.Deserialize<FriendsResponse>(json);
 
@@ -265,7 +265,7 @@ namespace DiscordBotTest.Services
               await Task.Delay(100);
             } while (!string.IsNullOrEmpty(PageToken));
           }
-          //Console.WriteLine("GetGroupMembersAsync: Completed.");
+          Logging.DebugLog("GetGroupMembersAsync: Completed.");
           return members;
         }
         else
@@ -286,11 +286,11 @@ namespace DiscordBotTest.Services
 
             PageToken = membersResponse?.PageToken;
           } while (!string.IsNullOrEmpty(PageToken));
-          //Console.WriteLine("GetGroupMembersAsync: Completed.");
+          Logging.DebugLog("GetGroupMembersAsync: Completed.");
           return members;
         }
       }
-      catch (Exception e) // broaden temporarily
+      catch (Exception e)
       {
         Console.WriteLine($"GetGroupMembersAsync: Failed: {e.GetType().Name}: {e.Message}");
         return null;
