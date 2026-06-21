@@ -249,7 +249,10 @@ namespace DiscordBotTest.Services
       {
         Services = _serviceProvider
       });
-      slash.RegisterCommands<SlashCommandsModule>(1346784451455356948);
+      if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+        slash.RegisterCommands<SlashCommandsModule>(1346784451455356948);
+      else
+        slash.RegisterCommands<SlashCommandsModule>();
 
       _client.MessageCreated += async (s, e) => await _executor.HandleAsync(e.Message);
 
