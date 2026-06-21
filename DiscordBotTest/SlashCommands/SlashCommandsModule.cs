@@ -1,6 +1,7 @@
 ﻿using DiscordBotTest.Services;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using DiscordBotTest.PrefixCommands.HelperFunctions;
 using static DiscordBotTest.StaticFunctions;
 
 namespace DiscordBotTest.SlashCommands
@@ -28,7 +29,7 @@ namespace DiscordBotTest.SlashCommands
 
       var builder = new DiscordWebhookBuilder();
 
-      if (await _bot.IsAuthorized(ctx.User, ctx.Guild))
+      if (!await CommandSecurityCheckClass.SecurityCheck(SecurityLevel.Guild, _bot, ctx.Guild, ctx.User))
       {
         await ctx.EditResponseAsync(builder.AddEmbed(
           _bot.NotAuthorizedError()
@@ -57,7 +58,7 @@ namespace DiscordBotTest.SlashCommands
 
       var builder = new DiscordWebhookBuilder();
 
-      if (await _bot.IsAuthorized(ctx.User, ctx.Guild))
+      if (!await _bot.IsGuildAuthorized(ctx.User, ctx.Guild))
       {
         await ctx.EditResponseAsync(builder.AddEmbed(
           _bot.NotAuthorizedError()

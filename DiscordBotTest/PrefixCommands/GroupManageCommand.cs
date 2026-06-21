@@ -10,14 +10,10 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["MG"];
     public string Usage => "ManageGroup Usage\nFields: <Add/Remove> <Role/User/Sheet> <(User/Role ID/Mention)/SheetName>\nOptional Fields: N/A\n\nExample Usage:\nManageGroup Add Role @Role\nManageGroup Remove User 1234567890\nManageGroup Add Sheet SheetName 1234567890 SheetID Range StartRow";
     public string Category => "Guild Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.GuildOwner;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
-      if (await s.IsAuthorized(m.Author, m.Channel.Guild))
-      {
-        await m.RespondAsync(s.NotAuthorizedError());
-        return;
-      }
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Guild Managment")
         .WithColor(DiscordColor.Red);

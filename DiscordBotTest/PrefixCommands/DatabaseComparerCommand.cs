@@ -10,6 +10,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["dbc"];
     public string Usage => "dbcompare Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\ndbcompare\ndbcompare 6769420";
     public string Category => "Guild Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Guild;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

@@ -9,14 +9,10 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["Stop"];
     public string Usage => "Shutdown Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nShutdown";
     public string Category => "Bot Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Owner;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
-      if (!s.IsOwner(m.Author.Id)) 
-      {
-        await m.RespondAsync(s.NotAuthorizedError());
-        return;
-      }
       var embed = new DiscordEmbedBuilder()
         .WithTitle("Shutting down...")
         .WithColor(DiscordColor.DarkRed)

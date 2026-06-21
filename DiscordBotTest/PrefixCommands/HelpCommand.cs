@@ -16,6 +16,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["H"];
     public string Usage => "Help Usage\nFields: N/A\nOptional Fields: <CommandName>\n\nExample Usage:\nHelp\nHelp Ping";
     public string Category => "Bot Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Public;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

@@ -16,7 +16,8 @@ namespace DiscordBotTest.Services
     private readonly TrelloBlacklistCache _trello;
     private readonly IServiceProvider _serviceProvider;
     public Tuple<string, string>? _owner;
-    public Dictionary<string, Dictionary<string, string>> _auth = [];
+    public Dictionary<string, Dictionary<string, Dictionary<string, string>>> _auth = [];
+    public Dictionary<string, string> _blacklist = [];
 
     public BotService(DiscordClient client, DbService db, GoogleSheetsService google, CommandRegistry registry, RobloxAPIServices robloxApi, TrelloBlacklistCache trello, IServiceProvider serviceProvider)
     {
@@ -68,6 +69,12 @@ namespace DiscordBotTest.Services
     public async Task<ApiResponse<User[]>?> GetUsersAsync(string groupId) => await _db.CallFunctionWithResponse<User[]>("get_group_users", groupId);
 
     /// <summary>
+    /// Gets a list of User records registered as blacklisted in the database.
+    /// </summary>
+    /// <returns>A ApiResponse object containing a list of User objects containing the blacklisted User records data.</returns>
+    public async Task<ApiResponse<User[]>?> GetBotBlacklistAsync() => await _db.CallFunctionWithResponse<User[]>("get_universal_blacklist");
+
+    /// <summary>
     /// Registers a new User record into the Databases GUILD_SPECIFIC_AUTHORIZED_USERS table using the data parameters.
     /// This registers the User as a administrative user granting it access to use specific access-locked commands in the specific guild.
     /// To be used when you want to only grant an individual User administrative access rather everyone with a specific Role.
@@ -79,13 +86,21 @@ namespace DiscordBotTest.Services
     public async Task<ApiResponse<User>?> PostGuildUserAsync(string userName, string userId, string guildId) => await _db.CallFunctionWithResponse<User>("register_user_with_group", [userName, userId, guildId]);
 
     /// <summary>
-    /// Registers a new User record into the Datbases AUTHORIZED_BOT_USERS table using the data parameters.
+    /// Registers a new User record into the Databases AUTHORIZED_BOT_USERS table using the data parameters.
     /// This registers the specific User as a Admin over the bot allowing them to use otherwise restricted commands.
     /// </summary>
     /// <param name="userName">The name of the User to record.</param>
     /// <param name="userId">The id of the User to record.</param>
     /// <returns>A ApiResponse object containing a User object containing the new records data.</returns>
     public async Task<ApiResponse<User>?> PostAdminUserAsync(string userName, string userId) => await _db.CallFunctionWithResponse<User>("register_admin_user", [userName, userId]);
+
+    /// <summary>
+    /// Registers a new User record into the Databases BLACKLISTED_BOT_USERS table using the data parameters.
+    /// </summary>
+    /// <param name="userName">The name of the User to record.</param>
+    /// <param name="userId">The id of the User to record.</param>
+    /// <returns>A ApiResponse object containing a User object containing the new records data.</returns>
+    public async Task<ApiResponse<User>?> PostBlacklsitedUserAsync(string userName, string userId) => await _db.CallFunctionWithResponse<User>("register_blacklisted_user", [userName, userId]);
 
     /// <summary>
     /// Registers a new Guild record into the Databases REGISTERED_GUILDS table using the data parameters.
@@ -137,7 +152,18 @@ namespace DiscordBotTest.Services
     /// <returns>A ApiResponse object containing a User object containing the deleted records data.</returns>
     public async Task<ApiResponse<User>?> RemoveAdminUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_admin_user", [userId]);
 
+    /// <summary>
+    /// Deletes a recorded User from the Databases BLACKLISTED_BOT_USERS table by the specific userId.
+    /// </summary>
+    /// <param name="userId">The userId to search for and delete the relating record of.</param>
+    /// <returns>A ApiResponse object containing a User object containing the deleted records data.</returns>
+    public async Task<ApiResponse<User>?> RemoveBlacklistedUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_blacklisted_user", [userId]);
 
+    /// <summary>
+    /// Deletes a recorded User from the Databases GROUP_SPECIFIC_AUTHORIZED_USERS table by the specific userId.
+    /// </summary>
+    /// <param name="userId">The userId to search for and delete the relating record of.</param>
+    /// <returns>A ApiResponse object containing a User object containing the deleted records data.</returns>
     public async Task<ApiResponse<User>?> RemoveGuildUserAsync(string userId) => await _db.CallFunctionWithResponse<User>("remove_group_user", [userId]);
 
 
@@ -226,21 +252,33 @@ namespace DiscordBotTest.Services
       slash.RegisterCommands<SlashCommandsModule>(1346784451455356948);
 
       _client.MessageCreated += async (s, e) => await _executor.HandleAsync(e.Message);
-      
+
       await _client.ConnectAsync();
 
       var groups = await GetAllRegisteredGroups();
       _owner = new(_client.CurrentApplication.Owners.FirstOrDefault()!.Id.ToString(), _client.CurrentApplication.Owners.FirstOrDefault()!.Username);
-      
+
+      var blacklist = await GetBotBlacklistAsync();
+
+      foreach (var user in blacklist?.Data ?? [])
+      {
+        _blacklist[user.UserId] = user.Name;
+        Logging.DebugLog($"Blacklisted User: {user.Name}({user.UserId})");
+      }
+
       if (groups?.Data is not null)
       {
-        _auth["0"] = [];
+        _auth["Admin"] = [];
+        _auth["Admin"]["0"] = [];
+        _auth["Guild"] = [];
+        _auth["Guild Owners"] = [];
         var adminUsers = await GetBotAdmins();
-        if (adminUsers?.Data is not null) 
+        if (adminUsers?.Data is not null)
         {
           foreach (var group in groups.Data)
           {
-            _auth[group.GroupId] = [];
+            _auth["Guild"][group.GroupId] = [];
+            _auth["Guild Owners"][group.GroupId] = [];
             Logging.DebugLog($"Group Registration: {group.Name}({group.GroupId})");
             var roles = await GetRolesAsync(group.GroupId);
             if (roles?.Data is not null)
@@ -248,7 +286,7 @@ namespace DiscordBotTest.Services
               foreach (var role in roles.Data)
               {
                 Logging.DebugLog($"   Role: {role.Name}({role.RoleId})");
-                _auth[group.GroupId][role.Id.ToString()] = role.Name;
+                _auth["Guild"][group.GroupId][role.Id.ToString()] = role.Name;
               }
             }
             var users = await GetUsersAsync(group.GroupId);
@@ -257,15 +295,15 @@ namespace DiscordBotTest.Services
               foreach (var user in users.Data)
               {
                 Logging.DebugLog($"   User: {user.Name}({user.UserId})");
-                _auth[group.GroupId][user.UserId] = user.Name;
+                _auth["Guild"][group.GroupId][user.UserId] = user.Name;
+                if (user.UserId == group.OwnerId)
+                  _auth["Guild Owners"][group.GroupId][user.UserId] = user.Name;
               }
             }
-            foreach (var admin in adminUsers.Data) _auth[group.GroupId][admin.UserId] = admin.Name;
-            _auth[group.GroupId][_owner.Item1] = _owner.Item2;
           }
-          foreach (var admin in adminUsers.Data) _auth["0"][admin.UserId] = admin.Name;
+          foreach (var admin in adminUsers.Data) _auth["Admin"]["0"][admin.UserId] = admin.Name;
         }
-        _auth["0"][_owner.Item1] = _owner.Item2;
+        _auth["Admin"]["0"][_owner.Item1] = _owner.Item2;
       }
     }
 
@@ -283,7 +321,7 @@ namespace DiscordBotTest.Services
     /// <returns>True if the userId is the owner of the bot application, otherwise false.</returns>
     public bool IsOwner(ulong id) => id == _client.CurrentApplication.Owners.FirstOrDefault()!.Id;
 
-    public async Task<bool> IsAuthorized(DiscordUser user, DiscordGuild? guild) 
+    public async Task<bool> IsGuildAuthorized(DiscordUser user, DiscordGuild? guild)
     {
       List<ulong> ids = [];
       var guildId = "0";
@@ -296,18 +334,37 @@ namespace DiscordBotTest.Services
       ids.Add(user.Id);
       foreach (var id in ids)
       {
-        if (_auth[guildId].ContainsKey(id.ToString())) return false;
+        if (_auth["Guild"][guildId].ContainsKey(id.ToString())) return true;
+        if (_auth["Guild Owners"][guildId].ContainsKey(id.ToString())) return true;
       }
-      return true;
+      return false;
     }
 
-    public bool IsBotAdmin(ulong id) => _auth["0"].ContainsKey(id.ToString());
+    public async Task<bool> IsGuildOwner(DiscordUser user, DiscordGuild? guild)
+    {
+      if (guild == null) return false;
+      var author = await guild.GetMemberAsync(user.Id);
+      return _auth["Guild Owners"][guild.Id.ToString()].ContainsKey(author.Id.ToString());
+    }
+
+    public bool IsBotAdmin(ulong id) => _auth["Admin"]["0"].ContainsKey(id.ToString());
+
+    public bool IsBotBlacklisted(ulong id) => _blacklist.ContainsKey(id.ToString());
 
     public DiscordEmbed NotAuthorizedError()
     {
       return new DiscordEmbedBuilder()
         .WithTitle("Auth: Failed")
         .WithDescription("Error: PermissionError: User lacks administrative permissions")
+        .WithColor(DiscordColor.DarkRed)
+        .Build();
+    }
+
+    public DiscordEmbed BlacklistedError()
+    {
+      return new DiscordEmbedBuilder()
+        .WithTitle("Auth: Failed")
+        .WithDescription("Error: PermissionError: User is blacklisted from using the bot.")
         .WithColor(DiscordColor.DarkRed)
         .Build();
     }

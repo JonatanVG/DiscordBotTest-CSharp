@@ -32,7 +32,7 @@ namespace DiscordBotTest.PrefixCommands.HelperFunctions
           .Build();
       }
       await s.AuditAction(DateTimeOffset.Now.ToString(), "User Action", "Remove<User>", $"{target}");
-      s._auth[guild.Id.ToString()].Remove(userId.ToString());
+      s._auth["Guild"][guild.Id.ToString()].Remove(userId.ToString());
       return result
         .WithDescription($"Action: Remove<User>({target})\nSuccess: {response.Success}\nMessage: {response.Message}\nRecordID: {response.Data?.Id}\nCreatedAt: {response.Data?.CreatedAt}")
         .WithColor(response.Success ? DiscordColor.SpringGreen : DiscordColor.Red)

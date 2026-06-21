@@ -9,6 +9,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["BA"];
     public string Usage => "";
     public string Category => "Bot Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Public;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
@@ -16,7 +17,7 @@ namespace DiscordBotTest.PrefixCommands
         .WithTitle("Bot Admins");
 
       var desc  = "";
-      foreach (var dict in s._auth["0"])
+      foreach (var dict in s._auth["Admin"]["0"])
       {
         desc += $"{dict.Value}({dict.Key})\n";
       }

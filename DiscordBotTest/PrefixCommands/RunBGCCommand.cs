@@ -10,6 +10,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["RunBGC", "run_bgc", "DoBGC"];
     public string Usage => "BGC Usage\nFields: <username1,username2,...>\nOptional Fields: <Graph?''> <Light/Dark?''>\n\nExample Usage:\nBGC User1,User2 Graph Light\nNotice: This command currently has no multi-user capability. BGC 1 user at a time.";
     public string Category => "Security Checks";
+    public SecurityLevel SecurityLevel => SecurityLevel.Admin;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
@@ -19,11 +20,6 @@ namespace DiscordBotTest.PrefixCommands
           .WithTitle("Incorrect Input")
           .WithDescription("Usage: BGC <username1,username2,...> <Graph?''> <Light/Dark?''")
           .Build());
-        return;
-      }
-      if (await s.IsAuthorized(m.Author, m.Channel.Guild))
-      {
-        await m.RespondAsync(s.NotAuthorizedError());
         return;
       }
       var username = args[0];

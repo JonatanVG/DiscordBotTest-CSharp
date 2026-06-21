@@ -9,10 +9,10 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["RegisterG", "RG"];
     public string Usage => "RegisterGuild Usage\nFields: <GuildName> <GuildId> <SheetId>\nOptional Fields: N/A\n\nExample Usage:\nRegisterGuild";
     public string Category => "Guild Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.GuildOwner;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
-      if (!s.IsOwner(m.Author.Id)) return;
       var guild = m.Channel.Guild;
       if (guild == null) return;
       var mainGroup = guild.Id.ToString()!;

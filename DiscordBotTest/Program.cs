@@ -65,9 +65,9 @@ namespace DiscordBotTest
         registry.Register(new PingCommand());
         registry.Register(new RegisterGroupCommand());
         registry.Register(new RegisterGuildCommand());
-        registry.Register(new RegisterGuildUserCommand());
         registry.Register(new RunBGCCommand());
         registry.Register(new ShutdownCommand());
+        registry.Register(new UniversalBlacklistCommand());
         registry.Register(new UniversalUserCommand());
 
         return registry;

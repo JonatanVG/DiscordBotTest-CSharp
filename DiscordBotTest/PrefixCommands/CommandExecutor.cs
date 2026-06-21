@@ -1,5 +1,6 @@
 ﻿using DiscordBotTest.Services;
 using DSharpPlus.Entities;
+using DiscordBotTest.PrefixCommands.HelperFunctions;
 using static DiscordBotTest.StaticFunctions;
 
 namespace DiscordBotTest.PrefixCommands
@@ -34,6 +35,18 @@ namespace DiscordBotTest.PrefixCommands
 
       var c = _registry.GetCommand(n);
       if (c is null) return;
+
+      if (_botService.IsBotBlacklisted(m.Author.Id)) 
+      {
+        await m.RespondAsync(_botService.BlacklistedError()); 
+        return;
+      }
+
+      if (!await CommandSecurityCheckClass.SecurityCheck(c.SecurityLevel, _botService, m.Channel.Guild, m.Author)) 
+      {
+        await m.RespondAsync(_botService.NotAuthorizedError()); 
+        return;
+      }
 
       await c.ExecuteAsync(_botService, m, a);
     }

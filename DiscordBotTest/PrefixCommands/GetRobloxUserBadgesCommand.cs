@@ -9,6 +9,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["GB"];
     public string Usage => "GetBadges Usage\nFields: <userId>\nOptional Fields: N/A\n\nExample Usage:\nGetBadges 1234567890";
     public string Category => "Security Checks";
+    public SecurityLevel SecurityLevel => SecurityLevel.Guild;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

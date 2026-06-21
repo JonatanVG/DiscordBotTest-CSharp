@@ -6,12 +6,22 @@ using System.Text.Json.Serialization;
 
 namespace DiscordBotTest
 {
+  public enum SecurityLevel
+  {
+    Public,
+    Guild,
+    GuildOwner,
+    Admin,
+    Owner
+  }
+
   public interface IPrefixCommand
   {
     string Name { get; }
     string[] Aliases { get; }
     string Usage { get; }
     string Category { get; }
+    SecurityLevel SecurityLevel { get; }
     Task ExecuteAsync(BotService c, DiscordMessage m, string[] args);
   }
 #nullable disable

@@ -9,6 +9,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["P"];
     public string Usage => "Ping Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nPing";
     public string Category => "Bot Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Public;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

@@ -152,82 +152,108 @@ namespace DiscordBotTest
 
     public static async Task<BGCResult> BGCFunction(List<string> username, BotService s, bool graph, bool mode)
     {
-      var response = new BGCResult();
-      var embed = new DiscordEmbedBuilder();
-      var User = await s.PostGetRobloxUsersAsync(username);
-      if (User is null)
-        return BGCError($"User {username} does not exist.");
-      Logging.DebugLog($"Fetched user {username[0]} with ID {User.Values.First().Id}");
-
-      var user = User.Values.First();
-      var desc = $"**Name: {user.DisplayName} (@{user.Name})**\nID: {user.Id}\nVerified: {user.IsVerified}\nRequest Name: {user.UserName}\n";
-
-      var userInfo = await s.GetRobloxUserInfoAsync(user.Id);
-      if (userInfo is null)
-        desc += $"WARN: Could not get userInfo for user {user.Name}\n";
-      else
+      try
       {
-        desc += $"JoinDate: {userInfo.CreateTime}\nHasPremium: {userInfo.IsPremium}\nIsIdVerified: {userInfo.IsIdVerified}\n";
-        Logging.DebugLog($"Fetched userInfo for user {user.Name} with ID {user.Id}");
-      }
+        var response = new BGCResult();
+        var embed = new DiscordEmbedBuilder();
+        var User = await s.PostGetRobloxUsersAsync(username);
+        if (User is null)
+          return BGCError($"User {username} does not exist.");
+        Logging.DebugLog($"Fetched user {username[0]} with ID {User.Values.First().Id}");
 
-      var blacklist = s.GetTrelloBlacklist();
-      if (blacklist is null)
-        desc += $"WARN: Could not get Trello blacklist\n";
-      else
-      {
-        desc += $"IsBlacklisted: {blacklist.List.ContainsKey(user.Id.ToString())}\n";
-        Logging.DebugLog($"Fetched Trello blacklist with {blacklist.List.Count} entries");
-      }
+        var user = User.Values.First();
+        var desc = $"**Name: {user.DisplayName} (@{user.Name})**\nID: {user.Id}\nVerified: {user.IsVerified}\nRequest Name: {user.UserName}\n";
 
-      var Badges = await s.GetRobloxUserBadgesAsync(user.Id);
-      if (Badges is null)
-        desc += $"WARN: Could not get badges for user {user.Name}\n";
-      else
-      {
-        desc += $"BadgeCount: {Badges.Count}\n";
-        Logging.DebugLog($"Fetched badges for user {user.Name} with ID {user.Id}");
-      }
-
-      var userFriends = await s.GetRobloxUserFriendsAsync(user.Id);
-      if (userFriends is null)
-        desc += $"WARN: Could not get friends for user {user.Name}\n";
-      else
-      {
-        Logging.DebugLog($"Fetched friends for user {user.Name} with ID {user.Id}");
-        var friendIds = userFriends?.Select(f => f.Id).ToList();
-
-        var blacklistedFriends = blacklist?.List.Values.Where(x => friendIds?.Contains(x.Id) == true).ToList();
-
-        if (blacklistedFriends?.Count > 0 && blacklistedFriends != null)
+        var userInfo = await s.GetRobloxUserInfoAsync(user.Id);
+        if (userInfo is null)
+          desc += $"WARN: Could not get userInfo for user {user.Name}\n";
+        else
         {
-          desc += $"\n\n**Blacklisted Friends ({blacklistedFriends.Count}):**\n";
-          desc += string.Join("\n", blacklistedFriends.Select(x => $"- {x.Name}({x.Id}) → {x.Status.Status} {x.Status.Suffix}"));
+          desc += $"JoinDate: {userInfo.CreateTime}\nHasPremium: {userInfo.IsPremium}\nIsIdVerified: {userInfo.IsIdVerified}\n";
+          Logging.DebugLog($"Fetched userInfo for user {user.Name} with ID {user.Id}");
         }
+
+        var blacklist = s.GetTrelloBlacklist();
+        if (blacklist is null)
+          desc += $"WARN: Could not get Trello blacklist\n";
+        else
+        {
+          desc += $"IsBlacklisted: {blacklist.List.ContainsKey(user.Id.ToString())}\n";
+          Logging.DebugLog($"Fetched Trello blacklist with {blacklist.List.Count} entries");
+        }
+
+        var Badges = await s.GetRobloxUserBadgesAsync(user.Id);
+        if (Badges is null || Badges.Count == 0)
+          desc += $"WARN: Could not get badges for user {user.Name}\n";
+        else
+        {
+          desc += $"BadgeCount: {Badges.Count}\n";
+          Logging.DebugLog($"Fetched badges for user {user.Name} with ID {user.Id}");
+        }
+
+        var userFriends = await s.GetRobloxUserFriendsAsync(user.Id);
+        if (userFriends is null)
+          desc += $"WARN: Could not get friends for user {user.Name}\n";
+        else
+        {
+          Logging.DebugLog($"Fetched friends for user {user.Name} with ID {user.Id}");
+          var friendIds = userFriends?.Select(f => f.Id).ToList();
+
+          var blacklistedFriends = blacklist?.List.Values.Where(x => friendIds?.Contains(x.Id) == true).ToList();
+
+          if (blacklistedFriends?.Count > 0 && blacklistedFriends != null)
+          {
+            desc += $"\n\n**Blacklisted Friends ({blacklistedFriends.Count}):**\n";
+            desc += string.Join("\n", blacklistedFriends.Select(x => $"- {x.Name}({x.Id}) → {x.Status.Status} {x.Status.Suffix}"));
+          }
+        }
+
+        var awardDates = (graph && Badges?.Count > 0) ? GetAwardDates(Badges) : null;
+        if (graph) Logging.DebugLog($"Extracted award dates for user {user.Name} with ID {user.Id}: {awardDates?.Length ?? 0}");
+
+        byte[]? imageBytes = null;
+        MemoryStream? stream = null;
+
+        if (graph)
+        {
+          if (awardDates?.Length > 0)
+          {
+            imageBytes = PlotCumulativeBadges(user.Name, user.Id, awardDates!, mode);
+            Logging.DebugLog($"Generated badge graph for user {user.Name} with ID {user.Id}, image size: {imageBytes?.Length ?? 0} bytes");
+
+            if (imageBytes?.Length > 0)
+            {
+              stream = new MemoryStream(imageBytes!);
+              Logging.DebugLog($"Created memory stream for badge graph for user {user.Name} with ID {user.Id}, stream length: {stream!.Length} bytes");
+              embed.WithImageUrl("attachment://badges.png");
+            }
+          }
+          else
+          {
+            desc += $"WARN: No badge award dates available, skipping graph\n";
+          }
+        }
+
+        response.Embeds.Add(embed
+          .WithTitle($"Check: {username[0]}")
+          .WithDescription(desc)
+          .WithColor(DiscordColor.Blurple)
+          .Build());
+
+        if (stream != null)
+        {
+          response.Files.Add(("badges.png", stream));
+          Logging.DebugLog($"Added badge graph to response for user {username[0]} with ID {user.Id}");
+        }
+
+        Logging.DebugLog($"BGCFunction: Completed for user {username[0]} with ID {user.Id}");
+        return response;
       }
-
-      var awardDates = graph && Badges != null ? GetAwardDates(Badges) : null;
-      if (graph) Logging.DebugLog($"Extracted award dates for user {user.Name} with ID {user.Id}: {awardDates?.Length ?? 0}");
-      var imageBytes = graph ? PlotCumulativeBadges(user.Name, user.Id, awardDates!, mode) : null;
-      if (graph) Logging.DebugLog($"Generated badge graph for user {user.Name} with ID {user.Id}, image size: {imageBytes!.Length} bytes");
-      var stream = graph ? new MemoryStream(imageBytes!) : null;
-      if (graph) Logging.DebugLog($"Created memory stream for badge graph for user {user.Name} with ID {user.Id}, stream length: {stream!.Length} bytes");
-
-      if (graph) embed.WithImageUrl("attachment://badges.png");
-
-      response.Embeds.Add(embed
-        .WithTitle($"Check: {username[0]}")
-        .WithDescription(desc)
-        .WithColor(DiscordColor.Blurple)
-        .Build());
-      if (graph) 
+      catch (Exception ex)
       {
-        response.Files.Add(("badges.png", stream));
-        Logging.DebugLog($"Added badge graph to response for user {username[0]} with ID {user.Id}");
+        Logging.DebugLog($"BGCFunction: Exception occurred - {ex.Message}");
+        return BGCError($"An error occurred while processing the request: {ex.Message}");
       }
-
-      Logging.DebugLog($"BGCFunction: Completed for user {username[0]} with ID {user.Id}");
-      return response;
     }
 
     public static byte[] PlotCumulativeBadges(string username, long userId, DateTimeOffset[] dates, bool mode)

@@ -9,6 +9,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["GGU", "GetGuildU", "GetGU"];
     public string Usage => "GetGuildUsers Usage\nFields: N/A\nOptional Fields: N/A\n\nExample Usage:\nGetGuildUsers";
     public string Category => "Guild Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Guild;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {

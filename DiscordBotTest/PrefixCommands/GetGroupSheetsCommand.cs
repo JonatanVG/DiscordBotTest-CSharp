@@ -9,6 +9,7 @@ namespace DiscordBotTest.PrefixCommands
     public string[] Aliases => ["Sheets", "GuildS", "GS"];
     public string Usage => "GuildSheets Usage\nFields: <guildId>\nOptional Fields: N/A\n\nExample Usage:\nGuildSheets 1234567890";
     public string Category => "Guild Management";
+    public SecurityLevel SecurityLevel => SecurityLevel.Guild;
 
     public async Task ExecuteAsync(BotService s, DiscordMessage m, string[] args)
     {
