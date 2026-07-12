@@ -42,7 +42,7 @@ namespace DiscordBotTest.PrefixCommands
           .WithColor(post != null && post.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
           .Build());
         if (post != null && post.Success)
-          s._auth["Admins"]["0"][user.Id.ToString()] = user.Username;
+          s._auth["Admin"]["0"][user.Id.ToString()] = user.Username;
         return;
       }
       var remove = await s.RemoveAdminUserAsync(user.Id.ToString());
@@ -51,7 +51,7 @@ namespace DiscordBotTest.PrefixCommands
         .WithColor(remove != null && remove.Success ? DiscordColor.SpringGreen : DiscordColor.Red)
         .Build());
       if (remove != null && remove.Success)
-        s._auth["Admins"]["0"].Remove(user.Id.ToString());
+        s._auth["Admin"]["0"].Remove(user.Id.ToString());
     }
   }
 }

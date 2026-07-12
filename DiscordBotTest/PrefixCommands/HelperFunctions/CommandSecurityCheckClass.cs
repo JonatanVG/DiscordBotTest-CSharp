@@ -12,7 +12,7 @@ namespace DiscordBotTest.PrefixCommands.HelperFunctions
         case SecurityLevel.Public:
           return true;
         case SecurityLevel.Guild:
-          if (g == null)
+          if (g == null || !s._auth["Guild"].ContainsKey(g.Id.ToString()))
             return s.IsOwner(u.Id) || s.IsBotAdmin(u.Id);
           return await s.IsGuildAuthorized(u, g);
         case SecurityLevel.GuildOwner:
